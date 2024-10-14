@@ -10,7 +10,7 @@ library(forecast)
   
 # reproducability.
 set.seed(1234)
-
+setwd('/Users/orshahar/Desktop/School/causality_analysis/Causal Inference Using Global Forecasting Code')
 # Loading the training dataset.
 input_file = "./datasets/text_data/EMS-MC/calls911_month_train2.txt" # train dataset with training period from Dec-15 to Dec-19
 df_train <- read.csv(file=input_file, header = FALSE)
@@ -124,7 +124,7 @@ for (validation in c(TRUE, FALSE)) {
       #sav_df[, (input_size*2 + 1 + 3):(input_size*2 + 2 + max_forecast_horizon  + 1)] = output_windows
     }
     
-    # Writing the dataframe into a file. 
+    #Writing the dataframe into a file. 
     write.table(
       sav_df,
       file = OUTPUT_PATH,

@@ -92,13 +92,5 @@ for (idr in 1:nrow(df_train)) {
   #sav_df[, (input_size*2 + 1 + 4)] = meanvalues
   
   # Writing the dataframe into a file.
-  write.table(
-    sav_df,
-    file = OUTPUT_PATH,
-    row.names = F,
-    col.names = F,
-    sep = " ",
-    quote = F,
-    append = TRUE
-  )
+
 }

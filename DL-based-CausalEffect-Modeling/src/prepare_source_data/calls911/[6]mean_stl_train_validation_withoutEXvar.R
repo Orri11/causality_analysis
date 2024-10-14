@@ -12,7 +12,7 @@ library(forecast)
 set.seed(1234)
 
 # Loading the training dataset.
-input_file = "./datasets/text_data/calls911/calls911_month_train2.txt" # train dataset with training period from Dec-15 to Dec-19
+input_file = "/Users/orshahar/Desktop/School/causality_analysis/DL-based-CausalEffect-Modeling/data/text_data/calls911/calls911_month_train.txt" # train dataset with training period from Dec-15 to Dec-19
 df_train <- read.csv(file=input_file, header = FALSE)
 #df_licenses <- read.csv("license.txt", header = FALSE) # in this 2nd experiment there isn't an external exogenous variable to be added
 
@@ -131,14 +131,14 @@ for (validation in c(TRUE, FALSE)) {
     }
     
     # Writing the dataframe into a file. 
-    write.table(
-      sav_df,
-      file = OUTPUT_PATH,
-      row.names = F,
-      col.names = F,
-      sep = " ",
-      quote = F,
-      append = TRUE
-    )
+    #write.table(
+      #sav_df,
+      #file = OUTPUT_PATH,
+      #row.names = F,
+      #col.names = F,
+      #sep = " ",
+      #quote = F,
+      #append = TRUE
+    #)
   }
 }
