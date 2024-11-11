@@ -10,3 +10,6 @@ pandas                    2.2.2
 python                    3.10.15 
 scikit-learn              1.5.2
 xlrd                      2.0.1y
+configspace               1.2.0
+smac                      0.11.1
+scikit-optimize

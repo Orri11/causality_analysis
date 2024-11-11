@@ -57,19 +57,16 @@ def evaluate(evaluate_args, ensembled_forecasts):
     # root_directory = '/path/to/root/directory/'
 
     # Errors file names
-    errors_directory = errors_directory + '/'
     errors_file_name = evaluate_args[3]
     errors_file_name_mean_median = 'mean_median_' + errors_file_name
     SMAPE_file_name_all_errors = 'all_smape_errors_' + errors_file_name
     MASE_file_name_all_errors = 'all_mase_errors_' + errors_file_name
-    CRPS_file_name_cs = errors_file_name+ '_cs'
-    errors_file_full_name_mean_median = errors_directory + errors_file_name_mean_median+'.txt'
+    CRPS_file_name_cs = errors_file_name + '_cs'
+    errors_file_full_name_mean_median = errors_directory + errors_file_name_mean_median + '.txt'
     SMAPE_file_full_name_all_errors = errors_directory + SMAPE_file_name_all_errors
     MASE_file_full_name_all_errors = errors_directory + MASE_file_name_all_errors
-    CRPS_file_cs = processed_forecasts_directory + CRPS_file_name_cs
+    CRPS_file_cs = errors_directory + CRPS_file_name_cs
 
-    # Actual results file name
-    # print(actual_results)
     actual_results = pd.read_csv(actual_results_file_name).iloc[:,1:]
     # print(actual_results)
     # print(" ")
@@ -126,29 +123,13 @@ def evaluate(evaluate_args, ensembled_forecasts):
 
     for k, v in ensembled_forecasts.items():
         # Perform spline regression for each time series
-        if dataset_type == 'calls911':
-            control = ["BRIDGEPORT", "BRYN ATHYN", "DOUGLASS", "HATBORO", "HATFIELD BORO",
-                    "LOWER FREDERICK", "NEW HANOVER", "NORRISTOWN", "NORTH WALES", "SALFORD",
-                    "SPRINGFIELD", "TRAPPE"]
-            data_row_cols = ["ABINGTON","AMBLER","BRIDGEPORT","BRYN ATHYN","CHELTENHAM",
-                             "COLLEGEVILLE","CONSHOHOCKEN","DOUGLASS","EAST GREENVILLE",
-                             "EAST NORRITON","FRANCONIA","GREEN LANE","HATBORO",
-                             "HATFIELD BORO","HATFIELD TOWNSHIP","HORSHAM","JENKINTOWN",
-                             "LANSDALE","LIMERICK","LOWER FREDERICK","LOWER GWYNEDD",
-                             "LOWER MERION","LOWER MORELAND","LOWER POTTSGROVE",
-                             "LOWER PROVIDENCE","LOWER SALFORD","MARLBOROUGH","MONTGOMERY",
-                             "NARBERTH","NEW HANOVER","NORRISTOWN","NORTH WALES","PENNSBURG",
-                             "PERKIOMEN","PLYMOUTH","POTTSTOWN","RED HILL","ROCKLEDGE",
-                             "ROYERSFORD","SALFORD","SCHWENKSVILLE","SKIPPACK","SOUDERTON",
-                             "SPRINGFIELD","TELFORD","TOWAMENCIN","TRAPPE","UPPER DUBLIN",
-                             "UPPER FREDERICK","UPPER GWYNEDD","UPPER HANOVER","UPPER MERION",
-                             "UPPER MORELAND","UPPER POTTSGROVE","UPPER PROVIDENCE",
-                             "UPPER SALFORD","WEST CONSHOHOCKEN","WEST NORRITON",
-                             "WEST POTTSGROVE","WHITEMARSH","WHITPAIN","WORCESTER"]
+        if dataset_type == 'elec_price':
+            control = ['AK', 'AL', 'AR', 'AZ', 'CO', 'DE', 'ID', 'FL', 'GA', 'HI', 'IA', 'IN', 'KS', 'KY', 'LA', 'MD', 
+                       'ME', 'MN', 'MI', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NM', 'NV', 'OH', 'OK', 'OR',
+                       'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
+            data_row_cols = actual_results.columns
             v['names'] = data_row_cols
             v.set_index('names', inplace=True)
-            # v = v.drop('names', axis=1)
-            # v = v.loc[control,:]
         
         num_time_series = v.shape[0]
         print(num_time_series)
@@ -185,15 +166,15 @@ def evaluate(evaluate_args, ensembled_forecasts):
                 # original_dataset_df = pd.DataFrame(original_dataset)
                 # original_values = list(original_dataset_df.index+1)
                 # print(original_dataset)
-                c = control.index(v.index[i])
-                lagged_diff = [data_row_B.iloc[c,j] - \
-                               data_row_B.iloc[c,j - \
+                #c = control.index(v.index[i])
+                lagged_diff = [data_row_B.iloc[i,j] - \
+                               data_row_B.iloc[i,j - \
                                 seasonality_period] for j in \
                                 range(seasonality_period, len(data_row_B.columns))]
                 # print(np.array(actual_results_df.iloc[i]))
                 # print(" ")
                 # print(converted_forecasts_df)
-                mase_vector.append(mase_greybox(np.array(data_row_A.iloc[c]),\
+                mase_vector.append(mase_greybox(np.array(data_row_A.iloc[i]),\
                      converted_forecasts_df, np.mean(np.abs(lagged_diff))))
                 # mase_vector.append(np.mean(np.abs(np.array(np.array(data_row_A.iloc[i]))\
                 #  - np.array(converted_forecasts_df.iloc[i])) / np.mean(np.abs(lagged_diff))))
@@ -210,7 +191,7 @@ def evaluate(evaluate_args, ensembled_forecasts):
     crps_y_pred = np.transpose(cs(list(ensembled_forecasts.keys())), (1, 0, 2))
     
     # Calculating the CRPS
-    crps_qs = mean_weighted_quantile_loss(crps_y_pred, np.array(data_row_A), ensembled_forecasts.keys())
+    crps_qs = mean_weighted_quantile_loss(crps_y_pred, np.array(data_row_A.loc[control,:]), ensembled_forecasts.keys())
 
     mean_CRPS = np.mean(crps_qs)
 
@@ -226,11 +207,11 @@ def evaluate(evaluate_args, ensembled_forecasts):
     if address_near_zero_instability:
         epsilon = 0.1
         comparator = 0.5 + epsilon
-        sum_term = np.maximum(comparator, (np.abs(converted_forecasts_smape) + np.abs(np.array(data_row_A)) + epsilon))
-        time_series_wise_SMAPE = 2 * np.abs(converted_forecasts_smape - np.array(data_row_A)) / sum_term
+        sum_term = np.maximum(comparator, (np.abs(converted_forecasts_smape) + np.abs(np.array(data_row_A.loc[control,:])) + epsilon))
+        time_series_wise_SMAPE = 2 * np.abs(converted_forecasts_smape - np.array(data_row_A.loc[control,:])) / sum_term
     else:
-        time_series_wise_SMAPE = 2 * np.abs(converted_forecasts_smape - np.array(data_row_A)) / \
-            (np.abs(converted_forecasts_smape) + np.abs(np.array(data_row_A)))
+        time_series_wise_SMAPE = 2 * np.abs(converted_forecasts_smape - np.array(data_row_A.loc[control,:])) / \
+            (np.abs(converted_forecasts_smape) + np.abs(np.array(data_row_A.loc[control,:])))
 
     SMAPEPerSeries = np.mean(time_series_wise_SMAPE, axis=1) #
 
@@ -278,6 +259,8 @@ def evaluate(evaluate_args, ensembled_forecasts):
     with open(errors_file_full_name_mean_median, 'a') as f:
         # f.write('\n'.join([mean_CRPS_str, median_CRPS_str, std_CRPS_str]))
         f.write('\n'.join([mean_CRPS_str]))
+
     with open(CRPS_file_cs+'.pickle', 'wb') as f:
         pickle.dump(crps_vector, f)
-    # np.savetxt(CRPS_file_cs, crps_vector, delimiter=",", fmt='%f')
+
+   # np.savetxt(CRPS_file_cs + '.txt' , crps_vector, delimiter=",", fmt='%f')

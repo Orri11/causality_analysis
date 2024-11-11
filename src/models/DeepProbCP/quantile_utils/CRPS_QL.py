@@ -1,7 +1,7 @@
 import numpy as np
-from keras.utils import losses_utils
-from keras.losses import LossFunctionWrapper
 import tensorflow as tf
+from tensorflow.python.keras.utils import losses_utils
+from tensorflow.python.keras.losses import LossFunctionWrapper
 from typeguard import typechecked
 from typing import List
 

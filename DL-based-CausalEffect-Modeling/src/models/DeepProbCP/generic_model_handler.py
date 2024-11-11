@@ -178,7 +178,7 @@ if __name__ == '__main__':
     # argument_parser.add_argument('--input_size', required=False,
     #                              help='The input size of the moving window. Default is 0')
     argument_parser.add_argument('--seasonality_period', required=True, help='The seasonality period of the time series')
-    argument_parser.add_argument('--forecast_horizon', required=True, help='The forecast horizon of the dataset')
+    c required=True, help='The forecast horizon of the dataset')
     argument_parser.add_argument('--optimizer', required=False, help='The type of the optimizer(cocob/adam/adagrad...). Default is cocob')
     argument_parser.add_argument('--quantile_range', required=False, 
                                  help='The range of the quantile for quantile forecasting. Default is np.linspace(0, 1, 21)')
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     print("Model Training Started for {}".format(model_identifier))
     
     input_size = int(seasonality_period * 1.25) + 1
-    initial_hyperparameter_values_file = "configs/initial_hyperparameter_values/" + \
+    initial_hyperparameter_values_file = "src/models/DeepProbCP/configs/initial_hyperparameter_values/" + \
         args.dataset_type + "_" + cell_type + "cell" + "_" +  optimizer
     binary_train_file_path_train_mode = "datasets/binary_data/" + args.dataset_type +  \
         "/moving_window/" + dataset_name + "_train_" + args.forecast_horizon + "_" +  \

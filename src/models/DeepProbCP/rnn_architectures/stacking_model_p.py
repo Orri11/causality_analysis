@@ -13,7 +13,7 @@ import sys
 sys.path.insert(0, ".")
 
 import numpy as np
-from tfrecords_handler.moving_window.tfrecord_reader import TFRecordReader
+from tfrecords_handler.tfrecord_reader import TFRecordReader
 from cocob_optimizer import cocob_optimizer
 from configs.global_configs import training_data_configs
 
