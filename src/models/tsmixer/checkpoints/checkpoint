@@ -1,2 +1,2 @@
-model_checkpoint_path: "TSMixer_elec_price_priceMT_M_sl12_pl12_iter3_best"
-all_model_checkpoint_paths: "TSMixer_elec_price_priceMT_M_sl12_pl12_iter3_best"
+model_checkpoint_path: "TSMixer_sim_sim_420_300_trend_hom_M_sl12_pl24_iter3_best"
+all_model_checkpoint_paths: "TSMixer_sim_sim_420_300_trend_hom_M_sl12_pl24_iter3_best"

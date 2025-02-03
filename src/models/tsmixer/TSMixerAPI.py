@@ -161,14 +161,13 @@ class TSFDataLoader:
     def _read_data(self):
         """Load raw data and split datasets."""
         if self.data_type == "elec_price":
-            df_raw = pd.read_csv(self.root_path + "data/" + self.data_type + "/" + self.data_name + "_full_table.csv")
+            df = pd.read_csv(self.root_path + "data/" + self.data_type + "/" + self.data_name + "_full_table.csv")
         else:
-            df_raw = pd.read_csv(self.root_path + "data/" + self.data_type + "/" + self.data_name + ".csv")
+            df = pd.read_csv(self.root_path + "data/" + self.data_type + "/" + self.data_name + ".csv")
 
         # S: univariate-univariate,
         # M: multivariate-multivariate,
         # MS: multivariate-univariate
-        df = df_raw.set_index("date")
 
         if self.features == "S":
             df = df[[self.target]]
@@ -179,7 +178,7 @@ class TSFDataLoader:
         # split train/valid/test
         n = len(df)
         test_end = n
-        val_end = test_end-self.pred_len # need to be reconsidered
+        val_end = test_end-self.pred_len 
         train_end = val_end-self.pred_len
 
         train_df = df[:train_end]
@@ -223,7 +222,7 @@ class TSFDataLoader:
 
     def _make_dataset(self, data, shuffle=True):
         data = np.array(data, dtype=np.float32)
-        ds = tf.keras.utils.timeseries_dataset_from_array(
+        ds = tf.keras.preprocessing.timeseries_dataset_from_array(
             data=data,
             targets=None,
             sequence_length=(self.seq_len + self.pred_len),
@@ -421,7 +420,7 @@ class TSMixer:
 
         self.setting = f"TSMixer_{self.args.data_type}_{self.args.data_name}_{self.args.features}_sl{self.args.seq_len}_pl{self.args.pred_len}_iter{self.args.iter}"
 
-        tf.keras.utils.set_random_seed(self.args.seed)
+        tf.random.set_seed(self.args.seed)
 
         # Initialize the data loader
         data_loader = TSFDataLoader(
@@ -456,7 +455,7 @@ class TSMixer:
         # Set up optimizer
         optimizer = tf.keras.optimizers.Adam(learning_rate=self.args.learning_rate)
         # True compilation
-        model.compile(optimizer=optimizer, loss=self.args.loss, metrics=["mae"])
+        model.compile(optimizer=optimizer, loss=self.args.loss, metrics=self.args.loss)
         checkpoint_path = os.path.join(self.args.checkpoints, f"{self.setting}_best")
         checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_path,
@@ -506,15 +505,15 @@ class TSMixer:
                        'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
             preds_df = pd.DataFrame(preds)
             preds_df.columns = names
-            preds_for_errors = np.array(preds_df.loc[:,control])
+            preds_for_errors_control = np.array(preds_df.loc[:,control])
         else:
-            names = pd.read_csv(self.args.root_path + "data/" + self.args.data_type + "/" + self.args.data_name + \
-                                '.csv').iloc.columns
+            names = np.int64(pd.read_csv(self.args.root_path + "data/" + self.args.data_type + "/" + self.args.data_name + \
+                                '.csv').columns.tolist())
             preds_df = pd.DataFrame(preds)
             preds_df.columns = names
             control = np.setdiff1d(np.arange(0,preds_df.shape[1]), treated_units_indices)
             preds_for_errors_control = np.array(preds_df.loc[:,control])
-            preds_for_errors_treated = np.array(preds_df.loc[:,~preds_df.columns.to_list.isin(control)])
+            preds_for_errors_treated = np.array(preds_df.loc[:,~preds_df.columns.isin(control)])
 
         
         # Extract y_trues from DataLoader
@@ -527,40 +526,60 @@ class TSMixer:
         if self.args.data_type == "sim":
             df_raw = pd.read_csv(self.args.root_path + "data/" + self.args.data_type + "/" + self.args.data_name + "_" + \
                                   "true_counterfactual" + ".csv")
+            df_raw.columns = np.int64(df_raw.columns.to_list())
+            trues = df_raw.loc[len(df_raw)- self.args.pred_len:,:]
             trues_control = np.array(df_raw.loc[len(df_raw)- self.args.pred_len:,control])        
-            df_a_control =  df_raw.iloc[:len(df_raw)- self.args.pred_len,control]  
+            df_a_control =  df_raw.loc[:len(df_raw)- self.args.pred_len,control]  
 
-            trues_treated = np.array(df_raw.loc[len(df_raw)- self.args.pred_len:,~df_raw.columns.to_list.isin(control)])        
-            df_a_treated =  df_raw.iloc[:len(df_raw)- self.args.pred_len,~df_raw.columns.to_list.isin(control)]                     
+            trues_treated = np.array(df_raw.loc[len(df_raw)- self.args.pred_len:,~df_raw.columns.isin(control)])        
+            df_a_treated =  df_raw.loc[:len(df_raw)- self.args.pred_len,~df_raw.columns.isin(control)]                     
         else:
             df_raw = pd.read_csv(self.args.root_path + "data/" + self.args.data_type + "/" + self.args.data_name + \
                                  "_full_table.csv").iloc[:,1:]
-            df_control = df_raw.loc[:, control]
-            trues = np.array(df_control.iloc[len(df_control) - self.args.pred_len:,:])
-            df_a = df_control.iloc[:len(df_control)- self.args.pred_len,:]
+            trues = df_raw.loc[len(df_raw)- self.args.pred_len:,:]
+            trues_control = np.array(df_control.iloc[len(df_control) - self.args.pred_len:,control])
+            df_a_control = df_control.loc[:len(df_control)- self.args.pred_len,control]
 
-        self.trues = trues
+            trues_treated = np.array(df_control.iloc[len(df_control) - self.args.pred_len:,~df_raw.columns.isin(control)])
+            df_a_ = df_control.loc[:len(df_control)- self.args.pred_len,~df_raw.columns.isin(control)]
+
+        self.trues_control = trues_control
+        self.trues_treated = trues_treated
 
         if self.args.delete_checkpoint:
             for f in glob.glob(self.args.checkpoint_path + "*"):
                 os.remove(f)
 
         # Save results
-        metric_folder_path = self.args.root_path + "/results/" + "tsmixer/"  + self.args.data_type + "/" +  "metrics" +"/"
-        data_folder_path = self.args.root_path + "/results/" + "tsmixer/"  + self.args.data_type + "/" +   "forecasts" +"/"
+        metric_folder_path = self.args.root_path + "/results/" + self.args.data_type + "/" + "tsmixer/"  +  "metrics" + "/"
+        data_folder_path = self.args.root_path + "/results/" + self.args.data_type + "/" + "tsmixer/"  +  "forecasts" + "/"
         if not os.path.exists(metric_folder_path):
             os.makedirs(metric_folder_path)
         if not os.path.exists(data_folder_path):
             os.makedirs(data_folder_path)
 
 
-        mae, mse, rmse, smape, mase = metric(preds_for_errors, trues ,df_a, self.args.seasonality_period)
-        all_metrics = [mae, mse, rmse, smape, mase]
-
+        mae_control, mse_control, rmse_control, smape_control, mase_control = metric( 
+        preds_for_errors_control, trues_control ,df_a_control, self.args.seasonality_period)
+        all_metrics_control = [mae_control, mse_control, rmse_control, smape_control, mase_control]
         metric_list = ['mae', 'mse', 'rmse', 'smape', 'mase']
-        metric_df = pd.DataFrame([all_metrics], columns=metric_list)
-        metric_df.to_csv(metric_folder_path + self.setting + "_" + "metrics.csv", index = False)
+        
+        metric_df_control = pd.DataFrame([all_metrics_control], columns=metric_list)
+
+        if self.args.dataset_type =='sim':
+            mae_treated, mse_treated, rmse_treated, smape_treated, mase_treated = metric( 
+            preds_for_errors_treated, trues_treated, df_a_treated, self.args.seasonality_period)
+            all_metrics_treated = [mae_treated, mse_treated, rmse_treated, smape_treated, mase_treate]
+
+            metric_df_treated = pd.DataFrame([all_metrics_treated], columns=metric_list)
+       
+
+        metric_df_control.to_csv(metric_folder_path + self.setting + "_" + "metrics_control.csv", index = False)
+        if self.args.dataset_type =='sim':
+            metric_df_treated.to_csv(metric_folder_path + self.setting + "_" + "metrics_treated.csv", index = False)
         preds_df.to_csv(data_folder_path + self.setting + "_" + "preds.csv", index = False)
-        pd.DataFrame(trues).to_csv(data_folder_path + self.setting + "_" + "trues.csv", index = False)
+        trues.to_csv(data_folder_path + self.setting + "_" + "trues.csv", index = False)
+
+        return preds
 
         
