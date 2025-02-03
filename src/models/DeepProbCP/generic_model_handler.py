@@ -163,6 +163,7 @@ if __name__ == '__main__':
 
     # arguments with no default values
     dataset_name = args.dataset_name
+    dataset_type = args.dataset_type
     no_of_series = int(args.no_of_series)
     input_size = int(args.input_size)
     output_size = int(args.forecast_horizon)
@@ -218,24 +219,26 @@ if __name__ == '__main__':
 
 
     model_identifier = dataset_name + "_" + cell_type + "cell" + "_" +  optimizer + "_" + \
-                       stl_decomposition_identifier
+                       str(input_size - 1) + "_" + str(output_size) + "_" + stl_decomposition_identifier
     print("Model Training Started for {}".format(model_identifier))
     
 
     initial_hyperparameter_values_file = "src/models/DeepProbCP/configs/initial_hyperparameter_values/" + \
-        args.dataset_name + "_" + cell_type + "cell" + "_" +  optimizer
+        "ems_adagrad"
     binary_train_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/" + \
-          dataset_name + "_" + str(args.forecast_horizon) + "_" + str(input_size-1) + "_" + "train" + ".tfrecords"
+          dataset_name + "_" + str(input_size-1) + "_" + str(args.forecast_horizon) + "_" + "train" + ".tfrecords"
     binary_validation_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
-         dataset_name +  "_" + str(args.forecast_horizon) + "_" + str(input_size-1) + "_" + "val" + ".tfrecords"
+         dataset_name +  "_" + str(input_size-1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
     binary_train_file_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
-         dataset_name + "_" + str(args.forecast_horizon) + "_" + str(input_size-1) + "_" + "val" + ".tfrecords"
+         dataset_name + "_" + str(input_size-1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
     binary_test_file_path_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
-         dataset_name + "_" + str(args.forecast_horizon) + "_" + str(input_size-1) + "_" + "test" + ".tfrecords"
+         dataset_name + "_" + str(input_size-1)  + "_" + str(args.forecast_horizon) + "_" + "test" + ".tfrecords"
     txt_test_file_path = "data/" + args.dataset_type +  "/moving_window/" + dataset_name + "_" + \
          str(input_size-1) + "_" + str(args.forecast_horizon) + "_" +  "test" + ".txt" 
     actual_results_file_path = "data/" + args.dataset_type +  \
-        "/" + dataset_name + "_full_table.csv"
+        "/" + dataset_name + "_full.txt"
+    if dataset_type == 'sim':
+        treated_units_index_file = "data/" + args.dataset_type + "/" + dataset_name + "_treated_indices.txt"
     # original_data_file_path = "datasets/text_data/" + args.dataset_type +  \
     #     "/" + dataset_name + "_train.csv"
     # define the key word arguments for the different model types
@@ -263,8 +266,12 @@ if __name__ == '__main__':
     model = StackingModel(**model_kwargs)
     
     # delete hyperparameter configs files if existing
-    for file in glob.glob(hyperparameter_tuning_configs.OPTIMIZED_CONFIG_DIRECTORY + model_identifier + "*"):
-         os.remove(file)
+    if dataset_type == 'elec_price':
+        for file in glob.glob(hyperparameter_tuning_configs.OPTIMIZED_CONFIG_DIRECTORY_ELEC + model_identifier + "*"):
+            os.remove(file)
+    elif dataset_type == 'sim':
+        for file in glob.glob(hyperparameter_tuning_configs.OPTIMIZED_CONFIG_DIRECTORY_SIM + model_identifier + "*"):
+            os.remove(file)
 
     # read the initial hyperparamter configurations from the file
     hyperparameter_values_dic = read_initial_hyperparameter_values(initial_hyperparameter_values_file)
@@ -273,57 +280,86 @@ if __name__ == '__main__':
     print(optimized_configuration)
 
     # persist the optimized configuration to a file
-    persist_results(optimized_configuration, hyperparameter_tuning_configs.OPTIMIZED_CONFIG_DIRECTORY + '/' + model_identifier + '.txt')
+    if dataset_type == 'elec_price':
+        persist_results(optimized_configuration, hyperparameter_tuning_configs.OPTIMIZED_CONFIG_DIRECTORY_ELEC + '/' + model_identifier + '.txt')
+    elif dataset_type == 'sim':
+        persist_results(optimized_configuration, hyperparameter_tuning_configs.OPTIMIZED_CONFIG_DIRECTORY_SIM + '/' + model_identifier + '.txt')
 
     # not training again but just read in
     # # optimized_configuration = read_optimal_hyperparameter_values("./results/DeepProbCP/optimized_configurations/" + model_identifier + ".txt")
     # # print(optimized_configuration)
 
     # delete the forecast files if existing
-    for file in glob.glob(
-            model_testing_configs.FORECASTS_DIRECTORY + model_identifier + "*"):
-        os.remove(file)
+    if dataset_type == 'elec_price':
+        for file in glob.glob(
+            model_testing_configs.FORECASTS_DIRECTORY_ELEC + model_identifier + "*"):
+            os.remove(file)
+    elif dataset_type == 'sim':
+        for file in glob.glob(
+            model_testing_configs.FORECASTS_DIRECTORY_SIM + model_identifier + "*"):
+            os.remove(file)
 
     print("tuning finished")
     T2 = time.time()
     print(T2)
-
+    print(dataset_name, no_of_series)
     # train the model with the optimized configuration and generate forcacsts
     for seed in range(1, 11):
          forecasts = model.test_model(optimized_configuration, seed)
 
          model_identifier_extended = model_identifier + "_" + str(seed)
          for k, v in forecasts.items():
-             rnn_forecasts_file_path = model_testing_configs.FORECASTS_DIRECTORY + model_identifier_extended + 'q_' + str(k) + '.txt'
             
-             with open(rnn_forecasts_file_path, "w") as output:
-                 writer = csv.writer(output, lineterminator='\n')
-                 writer.writerows(forecasts[k])
+            if dataset_type == 'elec_price':
+                rnn_forecasts_file_path = model_testing_configs.FORECASTS_DIRECTORY_ELEC + model_identifier_extended + 'q_' + str(k) + '.txt'
+            elif dataset_type == 'sim':
+                rnn_forecasts_file_path = model_testing_configs.FORECASTS_DIRECTORY_SIM + model_identifier_extended + 'q_' + str(k) + '.txt'
+            
+            with open(rnn_forecasts_file_path, "w") as output:
+                writer = csv.writer(output, lineterminator='\n')
+                writer.writerows(forecasts[k])
     print("prediction finished")
     T3 = time.time()
     
     
     # delete the ensembled forecast files if existing
-    for file in glob.glob(
-             model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY + model_identifier + "*"):
-         os.remove(file)
+    if dataset_type == 'elec_price':
+        for file in glob.glob(
+            model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_ELEC + model_identifier + "*"):
+            os.remove(file)
+    elif dataset_type == 'sim':
+        for file in glob.glob(
+            model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM + model_identifier + "*"):
+            os.remove(file)
 
     # ensemble the forecasts
-    ensembled_forecasts = ensembling_forecasts(model_identifier, model_testing_configs.FORECASTS_DIRECTORY,
-                          model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY,quantile_range)
+    if dataset_type == 'elec_price':
+        ensembled_forecasts = ensembling_forecasts(model_identifier, model_testing_configs.FORECASTS_DIRECTORY_ELEC,
+                          model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_ELEC,quantile_range)
+    elif dataset_type == 'sim':
+        ensembled_forecasts = ensembling_forecasts(model_identifier, model_testing_configs.FORECASTS_DIRECTORY_SIM,
+                          model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM,quantile_range)
+
 
     # not training again but just read in
-    ensembled_forecasts = {}
-    for q in quantile_range:
-        ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY +\
-                                              model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
+    #ensembled_forecasts = {}
+    #if dataset_type == 'elec_price':
+        #for q in quantile_range:
+            #ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_ELEC +\
+                                                #model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
+    #elif dataset_type == 'sim':
+        #for q in quantile_range:
+            #ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM +\
+                                               #model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
+
 
     print("ensembled finished")
     T4 = time.time()
     
-    evaluate_args = [model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY,
-                   model_testing_configs.ENSEMBLE_ERRORS_DIRECTORY,
-                   model_testing_configs.PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY,
+    if dataset_type == 'elec_price':
+       evaluate_args = [model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_ELEC,
+                   model_testing_configs.ENSEMBLE_ERRORS_DIRECTORY_ELEC,
+                   model_testing_configs.PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY_ELEC,
                    model_identifier,
                    txt_test_file_path,
                    actual_results_file_path,
@@ -335,7 +371,25 @@ if __name__ == '__main__':
                    int(integer_conversion),
                    seasonality_period,
                    int(without_stl_decomposition),
-                   args.dataset_type]
+                   args.dataset_type] 
+    elif dataset_type == 'sim':
+        evaluate_args = [model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM,
+                   model_testing_configs.ENSEMBLE_ERRORS_DIRECTORY_SIM,
+                   model_testing_configs.PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY_SIM,
+                   model_identifier,
+                   txt_test_file_path,
+                   actual_results_file_path,
+                #    original_data_file_path,
+                   input_size,
+                   output_size,
+                   int(contain_zero_values),
+                   int(address_near_zero_instability),
+                   int(integer_conversion),
+                   seasonality_period,
+                   int(without_stl_decomposition),
+                   args.dataset_type,
+                   treated_units_index_file]
+
     evaluate(evaluate_args, ensembled_forecasts)
     
     T5 = time.time()

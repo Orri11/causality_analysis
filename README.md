@@ -3,13 +3,13 @@ A causality impact and quantification using machine learning algorithms of the l
 
 
 packages:
-numpy                     1.26.4 
-matplotlib                3.9.2  
-openpyxl                  3.1.5 
-pandas                    2.2.2
-python                    3.10.15 
-scikit-learn              1.5.2
-xlrd                      2.0.1y
-configspace               1.2.0
-smac                      0.11.1
-scikit-optimize
+python  3.9
+tensorflow 2.5.0
+smac 1.0.0
+scipy 1.10.0
+pynisher 0.4.1
+typeguard 2.10.0
+pandas 1.4.2
+ml-dtypes 0.0.2
+numpy 1.19.5
+statsmodel 0.13.0

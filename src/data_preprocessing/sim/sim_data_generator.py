@@ -1,6 +1,5 @@
 import random
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import adfuller
@@ -119,7 +118,7 @@ class SynthesisTS:
             # Generate initial time stamp
             #init_date_stamp = pd.Timestamp("1990-01-01")
             # Generate fake hour within month of january
-            # "Start of each time series t_0 is uniformly sampled from [0, 720]"
+            # "Start of each time series t_0 is uniformly sampled from [0, 30]"
             start = int(np.random.uniform(0, self.cycle_periods[-1]))
             # Generate time points for the _generate_sin
             time_points = start + np.arange(self.seq_len)
@@ -194,7 +193,7 @@ class SynthesisTS:
     def add_intervention(
         df= None,
         treatment_rate= 0.3,
-        length = 12,
+        length = 24,
         type = 'hom'
     ):
     
@@ -216,20 +215,23 @@ class SynthesisTS:
         df = df.copy()
         data_len = df.shape[0]
 
-        num_control = int(df.shape[1] * (1 - treatment_rate))
-        #Split the dataset into control and treated units
-        control_units = df.iloc[:, :num_control]
-        treated_units = df.iloc[:, num_control:]
+        num_treatment = int(df.shape[1] * (treatment_rate))
+        #Randomly split the dataset into control and treated units
+        units_for_treatment = np.random.choice(np.arange(0, df.shape[1]), num_treatment, replace=False)
+        mask = np.ones(df.shape[1], dtype =bool)
+        mask[units_for_treatment] = False
+        control_units = df.iloc[:, mask]
+        treated_units = df.iloc[:, units_for_treatment]
         treated_units_intrv = treated_units.copy()
         #Define the quantiles and multipliers for the intervention
         quantile_list = np.linspace(0, 0.8, 5)
-        multiplier_list = np.linspace(0.5, 2.5, 5)
+        multiplier_list = np.linspace(0.3, 1.5, 5)
         quantile_dict = {}
         multiplier_dict = {}
         for index, quantile in enumerate(quantile_list):
-            #Extract the values top 4 quantiles of the treated units
-            quantile_dict[quantile] = np.quantile(treated_units.iloc[:data_len-length,:], quantile)
-            #Create a dictionary of multipliers for each quantile (from 0.5 std to 2 std)
+            #Extract the values of the quantiles for the treated units
+            quantile_dict[quantile] = np.quantile(treated_units, quantile)
+            #Create a dictionary of multipliers for each quantile (from 0.2 std to 1 std)
             multiplier_dict[quantile] = multiplier_list[index]
 
         #Calculate the standard deviation of the treated units prior to the intervention
@@ -242,12 +244,12 @@ class SynthesisTS:
                         values = treated_units.iloc[data_len-length:, j].loc[(treated_units.iloc[data_len-length:,j] >= 
                         quantile_dict[quantile_list[i]]) & 
                         (treated_units.iloc[data_len-length:, j] < quantile_dict[quantile_list[i+1]])]   
-                        treated_units_intrv.iloc[values.index.values, j] += std_treated * multiplier_dict[quantile_list[i]]
+                        treated_units_intrv.iloc[values.index.values, j] -= std_treated * multiplier_dict[quantile_list[i]]
                 else:
                     for j in range(treated_units.shape[1]):
                         values = treated_units.iloc[data_len-length:,j].loc[treated_units.iloc[data_len-length:,j] >= 
                         quantile_dict[quantile_list[i]]]
-                        treated_units_intrv.iloc[values.index.values,j] += std_treated * multiplier_dict[quantile_list[i]] 
+                        treated_units_intrv.iloc[values.index.values,j] -= std_treated * multiplier_dict[quantile_list[i]] 
         elif type == 'het':
             for i in range (len(quantile_list)):
                 if i < (len(quantile_list) - 1 ):
@@ -255,17 +257,18 @@ class SynthesisTS:
                         values = treated_units.iloc[data_len-length:, j].loc[(treated_units.iloc[data_len-length:,j] >= 
                         quantile_dict[quantile_list[i]]) & 
                         (treated_units.iloc[data_len-length:, j] < quantile_dict[quantile_list[i+1]])]
-                        treated_units_intrv.iloc[values.index.values, j] += \
-                        std_treated * ( multiplier_dict[quantile_list[i]] +  np.random.uniform(-0.2,0.2))
+                        treated_units_intrv.iloc[values.index.values, j] -= \
+                        std_treated * ( multiplier_dict[quantile_list[i]] +  np.random.uniform(-0.1,0.1))
                 else:
                     for j in range(treated_units.shape[1]):
                         values = treated_units.iloc[data_len-length:,j].loc[treated_units.iloc[data_len-length:,j] >= 
                         quantile_dict[quantile_list[i]]]
-                        treated_units_intrv.iloc[values.index.values,j] += \
-                        std_treated * ( multiplier_dict[quantile_list[i]] +  np.random.uniform(-0.2,0.2))
+                        treated_units_intrv.iloc[values.index.values,j] -= \
+                        std_treated * ( multiplier_dict[quantile_list[i]] +  np.random.uniform(-0.1,0.1))
 
         result_df = pd.concat([control_units, treated_units_intrv], axis=1)
-        return result_df
+        result_df = result_df[df.columns] #restore original order of columns
+        return result_df, units_for_treatment
 
     @staticmethod
     def add_additive_trend(

@@ -54,20 +54,35 @@ def evaluate(evaluate_args, ensembled_forecasts):
     seasonality_period = evaluate_args[11]
     without_stl_decomposition = evaluate_args[12]
     dataset_type = evaluate_args[13]
+    if dataset_type == 'sim':
+        treated_units_indices = np.loadtxt(evaluate_args[14], dtype=int)
     # root_directory = '/path/to/root/directory/'
 
     # Errors file names
     errors_file_name = evaluate_args[3]
-    errors_file_name_mean_median = 'mean_median_' + errors_file_name
-    SMAPE_file_name_all_errors = 'all_smape_errors_' + errors_file_name
-    MASE_file_name_all_errors = 'all_mase_errors_' + errors_file_name
-    CRPS_file_name_cs = errors_file_name + '_cs'
-    errors_file_full_name_mean_median = errors_directory + errors_file_name_mean_median + '.txt'
-    SMAPE_file_full_name_all_errors = errors_directory + SMAPE_file_name_all_errors
-    MASE_file_full_name_all_errors = errors_directory + MASE_file_name_all_errors
-    CRPS_file_cs = errors_directory + CRPS_file_name_cs
+    errors_file_name_mean_median_control = 'mean_median_control_' + errors_file_name
+    errors_file_name_mean_median_treated = 'mean_median_treated_' + errors_file_name
+    SMAPE_file_name_all_errors_control = 'all_smape_errors_control_' + errors_file_name
+    SMAPE_file_name_all_errors_treated = 'all_smape_errors_treated_' + errors_file_name
+    MASE_file_name_all_errors_control = 'all_mase_errors_control_' + errors_file_name
+    MASE_file_name_all_errors_treated = 'all_mase_errors_treated_' + errors_file_name
+    CRPS_file_name_cs_control = errors_file_name + '_control_cs'
+    CRPS_file_name_cs_treated= errors_file_name + '_treated_cs'
+    errors_file_full_name_mean_median_control = errors_directory + errors_file_name_mean_median_control + '.txt'
+    errors_file_full_name_mean_median_treated = errors_directory + errors_file_name_mean_median_treated + '.txt'
+    SMAPE_file_full_name_all_errors_control = errors_directory + SMAPE_file_name_all_errors_control
+    SMAPE_file_full_name_all_errors_treated = errors_directory + SMAPE_file_name_all_errors_treated
+    MASE_file_full_name_all_errors_control = errors_directory + MASE_file_name_all_errors_control
+    MASE_file_full_name_all_errors_treated = errors_directory + MASE_file_name_all_errors_treated
+    CRPS_file_cs_control = errors_directory + CRPS_file_name_cs_control 
+    CRPS_file_cs_treated = errors_directory + CRPS_file_name_cs_treated 
 
-    actual_results = pd.read_csv(actual_results_file_name).iloc[:,1:]
+    if dataset_type=='elec_price':
+        actual_results = pd.read_csv(actual_results_file_name,header=None).T
+        actual_results.columns = actual_results.iloc[0]
+        actual_results = actual_results.drop(0).reset_index(drop=True)
+    elif dataset_type=='sim':
+        actual_results = pd.read_csv(actual_results_file_name,header=None).iloc[:,1:].T.reset_index(drop=True)
     # print(actual_results)
     # print(" ")
     # if "series_id" in actual_results.columns:
@@ -117,22 +132,30 @@ def evaluate(evaluate_args, ensembled_forecasts):
     # else:
     #     converted_forecasts_matrix = np.zeros((len(ensembled_forecasts[0.5]), output_size))
 
-    mase_vector = []
-    crps_vector = []
+    mase_vector_treated = []
+    mase_vector_control= []
+    crps_vector_treated = []
+    crps_vector_control= []
     # lambda_val = -0.7 useless
 
     for k, v in ensembled_forecasts.items():
         # Perform spline regression for each time series
+        num_time_series = v.shape[0]
+        print(num_time_series)
+
         if dataset_type == 'elec_price':
-            control = ['AK', 'AL', 'AR', 'AZ', 'CO', 'DE', 'ID', 'FL', 'GA', 'HI', 'IA', 'IN', 'KS', 'KY', 'LA', 'MD', 
+            control = ['AK', 'AL', 'AR', 'AZ', 'CO', 'DE', 'ID', 'FL', 'GA', 'HI', 'IA', 'IN', 'KS', 'KY', 'LA', 
                        'ME', 'MN', 'MI', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NM', 'NV', 'OH', 'OK', 'OR',
                        'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
             data_row_cols = actual_results.columns
             v['names'] = data_row_cols
             v.set_index('names', inplace=True)
-        
-        num_time_series = v.shape[0]
-        print(num_time_series)
+
+        elif dataset_type == 'sim':
+            control = np.setdiff1d(np.arange(0,v.shape[0]), treated_units_indices)
+            data_row_cols = actual_results.columns
+
+
         for i in range(num_time_series):
             # post-processing
             # print(v.index[i])
@@ -158,7 +181,7 @@ def evaluate(evaluate_args, ensembled_forecasts):
 
             converted_forecasts_matrix[i, :] = converted_forecasts_df # one_ts_forecasts
             
-            if k == 0.5 and v.index[i] in control:
+            if k == 0.5:
                 # print(v.index[i])
                 # np.diff(np.array(original_dataset[i]), lag=seasonality_period, differences=1))
                 # original_values = list(map(float, original_dataset[i]))
@@ -174,93 +197,127 @@ def evaluate(evaluate_args, ensembled_forecasts):
                 # print(np.array(actual_results_df.iloc[i]))
                 # print(" ")
                 # print(converted_forecasts_df)
-                mase_vector.append(mase_greybox(np.array(data_row_A.iloc[i]),\
-                     converted_forecasts_df, np.mean(np.abs(lagged_diff))))
-                # mase_vector.append(np.mean(np.abs(np.array(np.array(data_row_A.iloc[i]))\
-                #  - np.array(converted_forecasts_df.iloc[i])) / np.mean(np.abs(lagged_diff))))
+                if v.index[i] in control:
+                    mase_vector_control.append(mase_greybox(np.array(data_row_A.iloc[i]),\
+                    converted_forecasts_df, np.mean(np.abs(lagged_diff))))
+                else:
+                    mase_vector_treated.append(mase_greybox(np.array(data_row_A.iloc[i]),\
+                    converted_forecasts_df, np.mean(np.abs(lagged_diff))))
+
         converted_forecasts_m_df = pd.DataFrame(converted_forecasts_matrix)
-        converted_forecasts_m_df['names'] = data_row_cols
-        converted_forecasts_m_df.set_index('names', inplace=True)
+        if dataset_type =='elec_price':
+            converted_forecasts_m_df['names'] = data_row_cols
+            converted_forecasts_m_df.set_index('names', inplace=True)
         if k == 0.5:  
-            converted_forecasts_smape = converted_forecasts_m_df.loc[control,:]
-        crps_vector.append(converted_forecasts_m_df.loc[control,:])
+            converted_forecasts_smape_control = converted_forecasts_m_df.loc[control,:]
+            converted_forecasts_smape_treated = converted_forecasts_m_df.loc[~converted_forecasts_m_df.index.isin(control),:]
+        crps_vector_control.append(converted_forecasts_m_df.loc[control,:])
+        crps_vector_treated.append(converted_forecasts_m_df.loc[~converted_forecasts_m_df.index.isin(control),:])
         # Persisting the converted forecasts
         np.savetxt(processed_forecasts_file+'_'+str(k)+'.txt', converted_forecasts_matrix, delimiter=",")
 
-    cs = CubicSpline(list(ensembled_forecasts.keys()), crps_vector, bc_type='natural')
-    crps_y_pred = np.transpose(cs(list(ensembled_forecasts.keys())), (1, 0, 2))
+    cs_control = CubicSpline(list(ensembled_forecasts.keys()), crps_vector_control, bc_type='natural')
+    crps_y_pred_control = np.transpose(cs_control(list(ensembled_forecasts.keys())), (1, 0, 2))
+
+    cs_treated = CubicSpline(list(ensembled_forecasts.keys()), crps_vector_treated, bc_type='natural')
+    crps_y_pred_treated = np.transpose(cs_treated(list(ensembled_forecasts.keys())), (1, 0, 2))    
     
     # Calculating the CRPS
-    crps_qs = mean_weighted_quantile_loss(crps_y_pred, np.array(data_row_A.loc[control,:]), ensembled_forecasts.keys())
+    crps_qs_control = mean_weighted_quantile_loss(crps_y_pred_control, np.array(data_row_A.loc[control,:]), ensembled_forecasts.keys())
+    crps_qs_treated = mean_weighted_quantile_loss(crps_y_pred_treated, np.array(data_row_A.loc[~data_row_A.index.isin(control),:]), ensembled_forecasts.keys())
+    
+    mean_CRPS_control = np.mean(crps_qs_control)
+    mean_CRPS_treated = np.mean(crps_qs_treated)
+    
 
-    mean_CRPS = np.mean(crps_qs)
-
-    mean_CRPS_str = f"mean_CRPS:{mean_CRPS}"
-    all_CRPS_qs = f"CRPS for different quantiles:{crps_qs}"
+    mean_CRPS_str_control = f"mean_CRPS:{mean_CRPS_control}"
+    all_CRPS_qs_control = f"CRPS for different quantiles:{crps_qs_control}"
     # std_CRPS_str = f"std_CRPS:{std_CRPS}"
 
-    print(mean_CRPS_str)
-    print(all_CRPS_qs)
-    # print(std_CRPS_str)
+    print(mean_CRPS_str_control)
+    print(all_CRPS_qs_control)
+
+    mean_CRPS_str_treated = f"mean_CRPS:{mean_CRPS_treated}"
+    all_CRPS_qs_treated= f"CRPS for different quantiles:{crps_qs_treated}"
+    
 
     # Calculating the SMAPE
     if address_near_zero_instability:
         epsilon = 0.1
         comparator = 0.5 + epsilon
-        sum_term = np.maximum(comparator, (np.abs(converted_forecasts_smape) + np.abs(np.array(data_row_A.loc[control,:])) + epsilon))
-        time_series_wise_SMAPE = 2 * np.abs(converted_forecasts_smape - np.array(data_row_A.loc[control,:])) / sum_term
+        sum_term_control = np.maximum(comparator, (np.abs(converted_forecasts_smape_control) + np.abs(np.array(data_row_A.loc[control,:])) + epsilon))
+        time_series_wise_SMAPE_control = 2 * np.abs(converted_forecasts_smape_control - np.array(data_row_A.loc[control,:])) / sum_term_control
+
+        sum_term_treated = np.maximum(comparator, (np.abs(converted_forecasts_smape_treated) + np.abs(np.array(data_row_A.loc[~data_row_A.index.isin(control),:])) + epsilon))
+        time_series_wise_SMAPE_treated = 2 * np.abs(converted_forecasts_smape_treated - np.array(data_row_A.loc[~data_row_A.index.isin(control),:])) / sum_term_treated
     else:
-        time_series_wise_SMAPE = 2 * np.abs(converted_forecasts_smape - np.array(data_row_A.loc[control,:])) / \
-            (np.abs(converted_forecasts_smape) + np.abs(np.array(data_row_A.loc[control,:])))
+        time_series_wise_SMAPE_control = 2 * np.abs(converted_forecasts_smape_control - np.array(data_row_A.loc[control,:])) / \
+            (np.abs(converted_forecasts_smape_control) + np.abs(np.array(data_row_A.loc[control,:])))
 
-    SMAPEPerSeries = np.mean(time_series_wise_SMAPE, axis=1) #
+        time_series_wise_SMAPE_treated = 2 * np.abs(converted_forecasts_smape_treated - np.array(data_row_A.loc[~data_row_A.index.isin(control),:])) / \
+            (np.abs(converted_forecasts_smape_treated) + np.abs(np.array(data_row_A.loc[~data_row_A.index.isin(control),:])))
+    SMAPEPerSeries_control = np.mean(time_series_wise_SMAPE_control, axis=1) #
+    SMAPEPerSeries_treated= np.mean(time_series_wise_SMAPE_treated, axis=1)
 
-    mean_SMAPE = np.mean(SMAPEPerSeries)
+    mean_SMAPE_control = np.mean(SMAPEPerSeries_control)
+    mean_SMAPE_treated= np.mean(SMAPEPerSeries_treated)
     # median_SMAPE = np.median(SMAPEPerSeries)
     # std_SMAPE = np.std(SMAPEPerSeries)
 
-    mean_SMAPE_str = f"mean_SMAPE:{mean_SMAPE}"
+    mean_SMAPE_str_control = f"mean_SMAPE:{mean_SMAPE_control}"
+    mean_SMAPE_str_treated = f"mean_SMAPE:{mean_SMAPE_treated}"
     # median_SMAPE_str = f"median_SMAPE:{median_SMAPE}"
     # std_SMAPE_str = f"std_SMAPE:{std_SMAPE}"
 
-    print(mean_SMAPE_str)
+    print(mean_SMAPE_str_control)
     # print(median_SMAPE_str)
     # print(std_SMAPE_str)
 
     # MASE
-    mean_MASE = np.mean(mase_vector)
+    mean_MASE_control = np.mean(mase_vector_control)
+    mean_MASE_treated = np.mean(mase_vector_treated)
     # median_MASE = np.median(mase_vector)
     # std_MASE = np.std(mase_vector)
 
-    mean_MASE_str = f"mean_MASE:{mean_MASE}"
+    mean_MASE_str_control = f"mean_MASE:{mean_MASE_control}"
+    mean_MASE_str_treated = f"mean_MASE:{mean_MASE_treated}"
     # median_MASE_str = f"median_MASE:{median_MASE}"
     # std_MASE_str = f"std_MASE:{std_MASE}"
 
-    print(mean_MASE_str)
+    print(mean_MASE_str_control)
     # print(median_MASE_str)
     # print(std_MASE_str)
 
 
     # Writing the SMAPE results to file
-    with open(errors_file_full_name_mean_median, 'w') as f:
+    with open(errors_file_full_name_mean_median_control, 'w') as f:
         # f.write('\n'.join([mean_SMAPE_str, median_SMAPE_str, std_SMAPE_str]))
-        f.write('\n'.join([mean_SMAPE_str]))
+        f.write('\n'.join([mean_SMAPE_str_control]))
 
-    np.savetxt(SMAPE_file_full_name_all_errors+'.txt', SMAPEPerSeries, delimiter=",", fmt='%f')
+    with open(errors_file_full_name_mean_median_treated, 'w') as f:
+        # f.write('\n'.join([mean_SMAPE_str, median_SMAPE_str, std_SMAPE_str]))
+        f.write('\n'.join([mean_SMAPE_str_treated]))
 
+    np.savetxt(SMAPE_file_full_name_all_errors_control+'.txt', SMAPEPerSeries_control, delimiter=",", fmt='%f')
+    np.savetxt(SMAPE_file_full_name_all_errors_treated+'.txt', SMAPEPerSeries_treated, delimiter=",", fmt='%f')
     # Writing the MASE results to file
-    with open(errors_file_full_name_mean_median, 'a') as f:
+    with open(errors_file_full_name_mean_median_control, 'a') as f:
         # f.write('\n'.join([mean_MASE_str, median_MASE_str, std_MASE_str]))
-        f.write('\n'.join([mean_MASE_str]))
+        f.write('\n'.join([mean_MASE_str_control]))
+    with open(errors_file_full_name_mean_median_treated, 'a') as f:
+        # f.write('\n'.join([mean_MASE_str, median_MASE_str, std_MASE_str]))
+        f.write('\n'.join([mean_MASE_str_treated]))
 
-    np.savetxt(MASE_file_full_name_all_errors+'.txt', mase_vector, delimiter=",", fmt='%f')
-
+    np.savetxt(MASE_file_full_name_all_errors_control+'.txt', mase_vector_control, delimiter=",", fmt='%f')
+    np.savetxt(MASE_file_full_name_all_errors_treated+'.txt', mase_vector_treated, delimiter=",", fmt='%f')
     # Writing the CRPS results to file
-    with open(errors_file_full_name_mean_median, 'a') as f:
-        # f.write('\n'.join([mean_CRPS_str, median_CRPS_str, std_CRPS_str]))
-        f.write('\n'.join([mean_CRPS_str]))
+    with open(errors_file_full_name_mean_median_control, 'a') as f:
+        f.write('\n'.join([mean_CRPS_str_control]))
+    with open(errors_file_full_name_mean_median_treated, 'a') as f:
+        f.write('\n'.join([mean_CRPS_str_treated]))
 
-    with open(CRPS_file_cs+'.pickle', 'wb') as f:
-        pickle.dump(crps_vector, f)
+    #with open(CRPS_file_cs+'.pickle', 'wb') as f:
+        #pickle.dump(crps_vector, f)
 
-   # np.savetxt(CRPS_file_cs + '.txt' , crps_vector, delimiter=",", fmt='%f')
+    np.savetxt(CRPS_file_cs_control + '.txt' , crps_qs_control, delimiter=",", fmt='%f')
+    np.savetxt(CRPS_file_cs_treated + '.txt' , crps_qs_treated, delimiter=",", fmt='%f')   

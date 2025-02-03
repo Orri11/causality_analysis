@@ -17,23 +17,30 @@ class model_testing_configs:
     ERRORS_DIRECTORY = './results/errors/'
 
     # RNN related
-    FORECASTS_DIRECTORY = './results/DeepProbCP/forecasts/'
-    ENSEMBLE_FORECASTS_DIRECTORY = './results/DeepProbCP/ensemble_forecasts/'
-    ENSEMBLE_CS_FORECASTS_DIRECTORY = './results/DeepProbCP/ensemble_interpolated_forecasts/'
-    ENSEMBLE_ERRORS_DIRECTORY = './results/DeepProbCP/metrics/'
-    PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY = './results/DeepProbCP/processed_ensemble_forecasts/'
-    AGGREGATED_ENSEMBLE_ERRORS_DIRECTORY = './results/DeepProbCP/ensemble_errors/aggregate_errors/'
+    FORECASTS_DIRECTORY_ELEC = './results/elec_price/DeepProbCP/forecasts/'
+    ENSEMBLE_FORECASTS_DIRECTORY_ELEC  = './results/elec_price/DeepProbCP/ensemble_forecasts/'
+    ENSEMBLE_CS_FORECASTS_DIRECTORY_ELEC  = './results/elec_price/DeepProbCP/ensemble_interpolated_forecasts/'
+    ENSEMBLE_ERRORS_DIRECTORY_ELEC  = './results/elec_price/DeepProbCP/metrics/'
+    PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY_ELEC  = './results/elec_price/DeepProbCP/processed_ensemble_forecasts/'
+    AGGREGATED_ENSEMBLE_ERRORS_DIRECTORY_ELEC  = './results/elec_price/DeepProbCP/ensemble_errors/aggregate_errors/'
+
+    FORECASTS_DIRECTORY_SIM = './results/sim/DeepProbCP/forecasts/'
+    ENSEMBLE_FORECASTS_DIRECTORY_SIM   = './results/sim/DeepProbCP/ensemble_forecasts/'
+    ENSEMBLE_CS_FORECASTS_DIRECTORY_SIM  = './results/sim/DeepProbCP/ensemble_interpolated_forecasts/'
+    ENSEMBLE_ERRORS_DIRECTORY_SIM  = './results/sim/DeepProbCP/metrics/'
+    PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY_SIM  = './results/sim/DeepProbCP/processed_ensemble_forecasts/'
+    AGGREGATED_ENSEMBLE_ERRORS_DIRECTORY_SIM  = './results/sim/DeepProbCP/ensemble_errors/aggregate_errors/'
 
     # aggregated general errors
-    AGGREGATED_ERRORS_DIRECTORY = './results/errors/aggregate_errors/'
-
+    AGGREGATED_ERRORS_DIRECTORY_ELEC = './results/elec_price/errors/aggregate_errors/'
+    AGGREGATED_ERRORS_DIRECTORY_SIM = './results/sim/errors/aggregate_errors/'
 # configs for hyperparameter tuning(SMAC3)
 class hyperparameter_tuning_configs:
     SMAC_RUNCOUNT_LIMIT = 50
     SMAC_RUNCOUNT_LIMIT_PER_SEQ = 50
 
     # RNN related
-    OPTIMIZED_CONFIG_DIRECTORY = './results/DeepProbCP/optimized_configurations/'
-
+    OPTIMIZED_CONFIG_DIRECTORY_ELEC = './results/elec_price/DeepProbCP/optimized_configurations'
+    OPTIMIZED_CONFIG_DIRECTORY_SIM = './results/sim/DeepProbCP/optimized_configurations'
 class training_data_configs:
     SHUFFLE_BUFFER_SIZE = 1000
