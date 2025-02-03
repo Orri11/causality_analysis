@@ -566,16 +566,16 @@ class TSMixer:
         
         metric_df_control = pd.DataFrame([all_metrics_control], columns=metric_list)
 
-        if self.args.dataset_type =='sim':
+        if self.args.data_type =='sim':
             mae_treated, mse_treated, rmse_treated, smape_treated, mase_treated = metric( 
             preds_for_errors_treated, trues_treated, df_a_treated, self.args.seasonality_period)
-            all_metrics_treated = [mae_treated, mse_treated, rmse_treated, smape_treated, mase_treate]
+            all_metrics_treated = [mae_treated, mse_treated, rmse_treated, smape_treated, mase_treated]
 
             metric_df_treated = pd.DataFrame([all_metrics_treated], columns=metric_list)
        
 
         metric_df_control.to_csv(metric_folder_path + self.setting + "_" + "metrics_control.csv", index = False)
-        if self.args.dataset_type =='sim':
+        if self.args.data_type =='sim':
             metric_df_treated.to_csv(metric_folder_path + self.setting + "_" + "metrics_treated.csv", index = False)
         preds_df.to_csv(data_folder_path + self.setting + "_" + "preds.csv", index = False)
         trues.to_csv(data_folder_path + self.setting + "_" + "trues.csv", index = False)
