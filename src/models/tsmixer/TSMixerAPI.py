@@ -68,7 +68,7 @@ def SMAPE(pred, true):
     """
     Calculates mean absolute percentage error.
     """
-    return np.mean(np.abs(pred - true) / (abs(pred) + np.abs(true)) * 2)
+    return np.mean(2* np.abs(pred - true) / ( np.abs(pred) + np.abs(true) ) )
 
 def mase_greybox(holdout, forecast, scale):
     """
@@ -541,7 +541,7 @@ class TSMixer:
             df_a_control = df_control.loc[:len(df_control)- self.args.pred_len,control]
 
             trues_treated = np.array(df_control.iloc[len(df_control) - self.args.pred_len:,~df_raw.columns.isin(control)])
-            df_a_ = df_control.loc[:len(df_control)- self.args.pred_len,~df_raw.columns.isin(control)]
+            df_a_treated = df_control.loc[:len(df_control)- self.args.pred_len,~df_raw.columns.isin(control)]
 
         self.trues_control = trues_control
         self.trues_treated = trues_treated

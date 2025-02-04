@@ -239,6 +239,8 @@ if __name__ == '__main__':
         "/" + dataset_name + "_full.txt"
     if dataset_type == 'sim':
         treated_units_index_file = "data/" + args.dataset_type + "/" + dataset_name + "_treated_indices.txt"
+        counterfactuals_file_path = "data/" + args.dataset_type +  \
+        "/" + dataset_name + "_true_counterfactual.csv"
     # original_data_file_path = "datasets/text_data/" + args.dataset_type +  \
     #     "/" + dataset_name + "_train.csv"
     # define the key word arguments for the different model types
@@ -378,7 +380,7 @@ if __name__ == '__main__':
                    model_testing_configs.PROCESSED_ENSEMBLE_FORECASTS_DIRECTORY_SIM,
                    model_identifier,
                    txt_test_file_path,
-                   actual_results_file_path,
+                   counterfactuals_file_path,
                 #    original_data_file_path,
                    input_size,
                    output_size,
