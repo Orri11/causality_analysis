@@ -263,7 +263,7 @@ if __name__ == '__main__':
         'cell_type': cell_type,
         'without_stl_decomposition': without_stl_decomposition
     }
-
+    
     # select the model type
     model = StackingModel(**model_kwargs)
     
@@ -342,18 +342,19 @@ if __name__ == '__main__':
         ensembled_forecasts = ensembling_forecasts(model_identifier, model_testing_configs.FORECASTS_DIRECTORY_SIM,
                           model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM,quantile_range)
 
-
+    '''
+    
     # not training again but just read in
-    #ensembled_forecasts = {}
-    #if dataset_type == 'elec_price':
-        #for q in quantile_range:
-            #ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_ELEC +\
-                                                #model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
-    #elif dataset_type == 'sim':
-        #for q in quantile_range:
-            #ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM +\
-                                               #model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
-
+    ensembled_forecasts = {}
+    if dataset_type == 'elec_price':
+        for q in quantile_range:
+            ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_ELEC +\
+                                                model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
+    elif dataset_type == 'sim':
+        for q in quantile_range:
+            ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM +\
+                                               model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
+    '''
 
     print("ensembled finished")
     T4 = time.time()

@@ -102,7 +102,7 @@ def MASE(pred, true, df_a, seasonality_period):
     mase_vector = []
     for i in range (len(df_a.columns)):
         lagged_diff = [df_a.iloc[j,i] - \
-                       df_a.iloc[j,i - seasonality_period] for j in range(seasonality_period, len(df_a))]
+                       df_a.iloc[j - seasonality_period,i] for j in range(seasonality_period, len(df_a))]
         mase_vector.append(mase_greybox(true, pred, np.mean(np.abs(lagged_diff))))
     mean_mase = np.mean(mase_vector)
     return mean_mase

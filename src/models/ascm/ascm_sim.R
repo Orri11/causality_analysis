@@ -2,8 +2,7 @@
 
 #Install required packages and the augsynth package
 
-# install.packages("tibble")
-# install.packages("devtools")
+# install.packages("tibble") install.packages("devtools")
 # devtools::install_github("ebenmichael/augsynth")
 
 
@@ -53,8 +52,8 @@ SMAPE <- function(pred, true) {
 }
 
 data_type <- 'sim'
-lengths = c(420)
-num_series = c(300)
+lengths = c(90,420)
+num_series = c(50,300)
 structures = c('stationary','trend')
 int_type = 'hom'
 pred_len = 24
@@ -84,18 +83,21 @@ for (len in lengths){
       ascm <- multisynth(value ~ treated, series, time, 
                          df_long, progfunc = 'ridge')
       
+      
       #extract the predictions
       preds <- as.data.frame(t(ascm$y0hat[[1]]))
       colnames(preds) <- sub("V","",colnames(preds))
       preds_treated <- as.matrix(preds[(len-pred_len + 1):len,colnames(preds) %in% treated_indices])
       preds_control <- as.matrix(preds[(len-pred_len + 1):len,!colnames(preds) %in% treated_indices])
      
+      
       ###evaluation###
       
       counterfactuals_path = paste0(data_folder,'_true_counterfactual.csv')
       counterfactuals = read.csv((counterfactuals_path))
       colnames(counterfactuals) <- sub("X","",colnames(counterfactuals))
       colnames(counterfactuals) <- as.numeric(colnames(counterfactuals)) + 1
+      
       trues <- counterfactuals[(len-pred_len + 1):len, ]
       trues_treated <- as.matrix(trues[,colnames(trues) %in% treated_indices])
       trues_control <- as.matrix(trues[,!colnames(trues) %in% treated_indices])
@@ -106,10 +108,13 @@ for (len in lengths){
       
       mase_control = MASE(preds_control,trues_control,df_A_control,seasonality_period)
       smape_control = SMAPE(preds_control,trues_control)
-      metrics_control = list(mase = mase_control,smape = smape_control)
+      
       
       mase_treated = MASE(preds_treated,trues_treated,df_A_treated,seasonality_period)
       smape_treated = SMAPE(preds_treated,trues_treated)
+      
+      metrics_control = list(mase = mase_control,smape = smape_control)
+      metrics_treated = list(mase = mase_treated,smape = smape_treated)
       
       forecasts_path = paste0(results_path,'/forecasts/')
       metrics_path = paste0(results_path,'/metrics/')
@@ -121,14 +126,16 @@ for (len in lengths){
         dir.create(metrics_path, recursive = TRUE)
       }
       
-      write.csv(preds, paste0(forecasts_path,dataset_name,"_predictions"), row.names = FALSE)
-      cat("mase", metrics_control$mase, "\n", "smape", metrics_control$smape, 
+      write.csv(preds, paste0(forecasts_path,dataset_name,"_predictions.csv"), row.names = FALSE)
+      cat("mase", metrics_control$mase, "\n","smape", metrics_control$smape, 
           file = paste0(metrics_path,dataset_name,"_metrics_control.txt"))
+      cat("mase", metrics_treated$mase, "\n","smape", metrics_treated$smape, 
+          file = paste0(metrics_path,dataset_name,"_metrics_treated.txt"))
     }
   }
 }
 
-preds
+
 
 
 

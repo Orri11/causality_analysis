@@ -82,7 +82,7 @@ def evaluate(evaluate_args, ensembled_forecasts):
         actual_results.columns = actual_results.iloc[0]
         actual_results = actual_results.drop(0).reset_index(drop=True)
     elif dataset_type=='sim':
-        actual_results = pd.read_csv(actual_results_file_name,header=None).iloc[:,1:].T.reset_index(drop=True)
+        actual_results = pd.read_csv(actual_results_file_name)
     # print(actual_results)
     # print(" ")
     # if "series_id" in actual_results.columns:
@@ -98,8 +98,12 @@ def evaluate(evaluate_args, ensembled_forecasts):
     length_of_series = len(actual_results.index)
 
     data_row_A = actual_results.iloc[length_of_series-output_size:, :].T
+    data_row_A.index = data_row_A.index.astype(int)
     data_row_B = actual_results.iloc[:length_of_series-output_size, :].T
+    data_row_B.index = data_row_B.index.astype(int)
 
+    print("index:" ,data_row_A.index, type(data_row_A.index), data_row_A.index.dtype)
+    
     # print(actual_results)
     # print(" ")
     # Text test data file name
@@ -154,7 +158,6 @@ def evaluate(evaluate_args, ensembled_forecasts):
         elif dataset_type == 'sim':
             control = np.setdiff1d(np.arange(0,v.shape[0]), treated_units_indices)
             data_row_cols = actual_results.columns
-
 
         for i in range(num_time_series):
             # post-processing
