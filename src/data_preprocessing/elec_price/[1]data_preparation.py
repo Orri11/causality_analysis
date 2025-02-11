@@ -24,23 +24,24 @@ for state in list_states:
 
 # Create a dataframe with the residential prices as this the data we are interested in
 data = pd.DataFrame(state_dict_res , index=data_raw.index.unique()).sort_index()
-data = data.loc["1992-01-01":"1998-12-01",:]
+data = data.loc["1990-01-01":"1999-12-01",:]
 #Check for missing values
 print(data.isnull().sum().sum()) # 0 missing values
+data.drop(columns='DC', inplace=True)
 
 data=data.transpose()
 data.insert(0, 'state', data.index)
 data = data.reset_index(drop=True)
 
 # Writing the full dataset in a txt file
-data.to_csv(os.path.join(data_path, 'elec_price_full.txt'), index= False, header=False)
+data.to_csv(os.path.join(data_path, 'priceMT_full.txt'), index= False, header=False)
 
-# Train dataset - 01.1992 - 12.1997
-data_train = data.iloc[:,0:73]
+# Train dataset - 01.1990 - 12.1997
+data_train = data.iloc[:,0:97]
 data_train.to_csv(os.path.join(data_path,'elec_price_train.txt'), index= False, header=False)
 
-# Test dataset - 01.1998 - 12.1998
-data_test = data.iloc[:,73:85]
+# Test dataset - 01.1998 - 12.1999
+data_test = data.iloc[:,96:121]
 data_test.to_csv(os.path.join(data_path,'elec_price_test.txt'), index= False, header=False)
 
 

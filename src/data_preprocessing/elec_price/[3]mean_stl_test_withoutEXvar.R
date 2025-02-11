@@ -21,13 +21,15 @@ set.seed(1234)
 main_dir = normalizePath(".")
 input_file = paste(main_dir,"/data/elec_price/elec_price_train.txt", sep = '') 
 df_train <- read.csv(file=input_file, header = FALSE)
+df_income <- read.csv(paste0(main_dir,"/data/elec_price/row_income_data_train.txt"),header = FALSE)
+df_gas <- read.csv(paste0(main_dir,"/data/elec_price/gas_data_train.txt"),header = FALSE)
 
 # Defining output directory, input window size, forecasting horizon, and seasonality respectively.
 output_dir = paste(main_dir,"/data/elec_price/moving_window/",sep = '')
 suppressWarnings(dir.create(output_dir, recursive=TRUE)) # create the output directory if not existing
 
-input_size = 12 # it's the result of (seasonality_period * 1.25)
-max_forecast_horizon <- 12
+input_size = 12 
+max_forecast_horizon <- 24
 seasonality_period <- 12
 
 for (idr in 1:nrow(df_train)) {
@@ -37,11 +39,21 @@ for (idr in 1:nrow(df_train)) {
   output_path = paste(output_path, max_forecast_horizon, sep = '_')
   output_path = paste(output_path, 'test', sep = '_')
   output_path = paste(output_path, 'txt', sep = '.')
-  time_series_data <- as.numeric(df_train[idr,c(2:73)])
   
+  income_ts <- as.numeric(df_income[idr,c(2:97)])
+  income_ts <- round(income_ts*1.1)
+  income_ts_mean <- mean(income_ts)
+  income_final_ts <- income_ts / (income_ts_mean)
+  aggregated_timeseries_income <- income_final_ts
+  
+  gas_ts <- as.numeric(df_gas[idr,c(2:97)])
+  gas_ts_mean <- mean(gas_ts)
+  gas_final_ts <- gas_ts / (gas_ts_mean)
+  aggregated_timeseries_gas <- gas_final_ts
+  
+  time_series_data <- as.numeric(df_train[idr,c(2:97)])
   time_series_mean <- mean(time_series_data)
   time_series_data <- time_series_data / (time_series_mean)
-  
   # Performing log operation on the time series.
   time_series_log <- log(time_series_data)
   time_series_length = length(time_series_log)
@@ -63,7 +75,8 @@ for (idr in 1:nrow(df_train)) {
   # Generating input and output windows using the original time series.
   input_windows = embed(time_series_log[1:(time_series_length)], input_size)[, input_size:1]
   # Generating seasonal components to use as exogenous variables.
-  #exogenous_windows = embed(aggregated_timeseries[1:(time_series_length)], input_size)[, input_size:1]
+  exogenous_windows_income = embed(aggregated_timeseries_income[1:(time_series_length)], input_size)[, input_size:1]
+  exogenous_windows_gas = embed(aggregated_timeseries_gas[1:(time_series_length)], input_size)[, input_size:1]
   seasonality_windows = embed(decomp_result [1:(time_series_length), 1], input_size)[, input_size:1]
   seasonality_windows =  seasonality_windows[, c(12)] # c(value of input_size)
   # Generating the final window values.
@@ -72,21 +85,17 @@ for (idr in 1:nrow(df_train)) {
   
   # Saving into a dataframe with the respective values.
   sav_df = matrix(NA,
-                  ncol = (4 + input_size + 1),
+                  ncol = ((3* input_size) + 5),
                   nrow = nrow(input_windows))
   sav_df = as.data.frame(sav_df)
   sav_df[, 1] = paste(idr - 1, '|i', sep = '')
-  #sav_df[, 2:(input_size + 1)] = exogenous_windows
-  sav_df[, 2] = seasonality_windows
-  #sav_df[, (input_size + 2)] = seasonality_windows
-  sav_df[, 3:(input_size + 2)] = input_windows
-  #sav_df[, (input_size + 3):(input_size*2 + 1 + 1)] = input_windows
-  sav_df[, (input_size + 2 + 1)] = '|#'
-  #sav_df[, (input_size*2 + 1 + 2)] = '|#'
-  sav_df[, (input_size + 2 + 2)] = time_series_mean
-  #sav_df[, (input_size*2 + 1 + 3)] = time_series_mean
-  sav_df[, (input_size + 2 + 3)] = meanvalues
-  #sav_df[, (input_size*2 + 1 + 4)] = meanvalues
+  sav_df[, 2:(input_size + 1)] = exogenous_windows_income
+  sav_df[, (input_size + 2):((input_size*2) + 1)] = exogenous_windows_gas
+  sav_df[, ((input_size*2) + 2)] = seasonality_windows
+  sav_df[, ((input_size*2) + 3):((input_size*3) + 2)] = input_windows
+  sav_df[, ((input_size*3) + 3)] = '|#'
+  sav_df[, ((input_size*3) + 4)] = time_series_mean
+  sav_df[, ((input_size*3) + 5)] = meanvalues
   
   # Writing the dataframe into a file.
   write.table(
