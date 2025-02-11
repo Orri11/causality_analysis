@@ -233,14 +233,14 @@ def evaluate(evaluate_args, ensembled_forecasts):
     mean_CRPS_treated = np.mean(crps_qs_treated)
     
 
-    mean_CRPS_str_control = f"mean_CRPS:{mean_CRPS_control}"
+    mean_CRPS_str_control = f"mean_CRPS: {mean_CRPS_control}"
     all_CRPS_qs_control = f"CRPS for different quantiles:{crps_qs_control}"
     # std_CRPS_str = f"std_CRPS:{std_CRPS}"
 
     print(mean_CRPS_str_control)
     print(all_CRPS_qs_control)
 
-    mean_CRPS_str_treated = f"mean_CRPS:{mean_CRPS_treated}"
+    mean_CRPS_str_treated = f"mean_CRPS: {mean_CRPS_treated}"
     all_CRPS_qs_treated= f"CRPS for different quantiles:{crps_qs_treated}"
     
 
@@ -267,8 +267,8 @@ def evaluate(evaluate_args, ensembled_forecasts):
     # median_SMAPE = np.median(SMAPEPerSeries)
     # std_SMAPE = np.std(SMAPEPerSeries)
 
-    mean_SMAPE_str_control = f"mean_SMAPE:{mean_SMAPE_control}"
-    mean_SMAPE_str_treated = f"mean_SMAPE:{mean_SMAPE_treated}"
+    mean_SMAPE_str_control = f"mean_SMAPE: {mean_SMAPE_control}"
+    mean_SMAPE_str_treated = f"mean_SMAPE: {mean_SMAPE_treated}"
     # median_SMAPE_str = f"median_SMAPE:{median_SMAPE}"
     # std_SMAPE_str = f"std_SMAPE:{std_SMAPE}"
 
@@ -282,8 +282,8 @@ def evaluate(evaluate_args, ensembled_forecasts):
     # median_MASE = np.median(mase_vector)
     # std_MASE = np.std(mase_vector)
 
-    mean_MASE_str_control = f"mean_MASE:{mean_MASE_control}"
-    mean_MASE_str_treated = f"mean_MASE:{mean_MASE_treated}"
+    mean_MASE_str_control = f"mean_MASE: {mean_MASE_control}"
+    mean_MASE_str_treated = f"mean_MASE: {mean_MASE_treated}"
     # median_MASE_str = f"median_MASE:{median_MASE}"
     # std_MASE_str = f"std_MASE:{std_MASE}"
 
@@ -295,32 +295,30 @@ def evaluate(evaluate_args, ensembled_forecasts):
     # Writing the SMAPE results to file
     with open(errors_file_full_name_mean_median_control, 'w') as f:
         # f.write('\n'.join([mean_SMAPE_str, median_SMAPE_str, std_SMAPE_str]))
-        f.write('\n'.join([mean_SMAPE_str_control]))
+        f.write(mean_SMAPE_str_control + '\n')
 
     with open(errors_file_full_name_mean_median_treated, 'w') as f:
         # f.write('\n'.join([mean_SMAPE_str, median_SMAPE_str, std_SMAPE_str]))
-        f.write('\n'.join([mean_SMAPE_str_treated]))
+        f.write(mean_SMAPE_str_treated + '\n')
 
     np.savetxt(SMAPE_file_full_name_all_errors_control+'.txt', SMAPEPerSeries_control, delimiter=",", fmt='%f')
     np.savetxt(SMAPE_file_full_name_all_errors_treated+'.txt', SMAPEPerSeries_treated, delimiter=",", fmt='%f')
     # Writing the MASE results to file
     with open(errors_file_full_name_mean_median_control, 'a') as f:
         # f.write('\n'.join([mean_MASE_str, median_MASE_str, std_MASE_str]))
-        f.write('\n'.join([mean_MASE_str_control]))
+        f.write(mean_MASE_str_control + '\n')
     with open(errors_file_full_name_mean_median_treated, 'a') as f:
         # f.write('\n'.join([mean_MASE_str, median_MASE_str, std_MASE_str]))
-        f.write('\n'.join([mean_MASE_str_treated]))
+        f.write(mean_MASE_str_treated + '\n')
 
     np.savetxt(MASE_file_full_name_all_errors_control+'.txt', mase_vector_control, delimiter=",", fmt='%f')
     np.savetxt(MASE_file_full_name_all_errors_treated+'.txt', mase_vector_treated, delimiter=",", fmt='%f')
     # Writing the CRPS results to file
     with open(errors_file_full_name_mean_median_control, 'a') as f:
-        f.write('\n'.join([mean_CRPS_str_control]))
+        f.write(mean_CRPS_str_control + '\n')
     with open(errors_file_full_name_mean_median_treated, 'a') as f:
-        f.write('\n'.join([mean_CRPS_str_treated]))
+        f.write(ean_CRPS_str_treated + '\n')
 
-    #with open(CRPS_file_cs+'.pickle', 'wb') as f:
-        #pickle.dump(crps_vector, f)
 
     np.savetxt(CRPS_file_cs_control + '.txt' , crps_qs_control, delimiter=",", fmt='%f')
     np.savetxt(CRPS_file_cs_treated + '.txt' , crps_qs_treated, delimiter=",", fmt='%f')   

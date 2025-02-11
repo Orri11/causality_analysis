@@ -127,10 +127,10 @@ for (len in lengths){
       }
       
       write.csv(preds, paste0(forecasts_path,dataset_name,"_predictions.csv"), row.names = FALSE)
-      cat("mase", metrics_control$mase, "\n","smape", metrics_control$smape, 
-          file = paste0(metrics_path,dataset_name,"_metrics_control.txt"))
-      cat("mase", metrics_treated$mase, "\n","smape", metrics_treated$smape, 
-          file = paste0(metrics_path,dataset_name,"_metrics_treated.txt"))
+      cat("mase ", metrics_control$mase, "\nsmape ", metrics_control$smape, 
+          file = paste0(metrics_path,dataset_name,"_metrics_control.txt"),sep = "")
+      cat("mase ", metrics_treated$mase, "\nsmape ", metrics_treated$smape, 
+          file = paste0(metrics_path,dataset_name,"_metrics_treated.txt"), sep = "")
     }
   }
 }
