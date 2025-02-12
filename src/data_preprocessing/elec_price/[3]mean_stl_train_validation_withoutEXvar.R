@@ -125,7 +125,6 @@ for (validation in c(TRUE, FALSE)) {
       sav_df[, ((input_size*2) + 2)] = seasonality_windows
       sav_df[, ((input_size*2) + 3):((input_size*3) + 2)] = input_windows
       sav_df[, ((input_size*3) + 3)] = '|o'
-      sav_df[, (input_size + 2 + 1 + 1):(input_size + 2 + 1 + max_forecast_horizon)] = output_windows
       sav_df[, ((input_size*3) + 4):((input_size*3) + 3 + max_forecast_horizon)] = output_windows
     }
     

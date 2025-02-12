@@ -66,7 +66,7 @@ for (idr in 1:nrow(df_train)) {
     values_vect = as.numeric(sstl$time.series[, 2] + sstl$time.series[, 3])
     cbind(seasonal_vect, levels_vect, values_vect)
   }, error = function(e) {
-    seasonal_vect = rep(0, length(time_series_length))#stl() may fail, and then we would go on with the seasonality vector=0
+    seasonal_vect = rep(0, length(ßtime_series_length))#stl() may fail, and then we would go on with the seasonality vector=0
     levels_vect = time_series_log
     values_vect = time_series_log
     cbind(seasonal_vect, levels_vect, values_vect)
