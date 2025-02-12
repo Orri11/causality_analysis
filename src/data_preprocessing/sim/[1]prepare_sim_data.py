@@ -34,9 +34,9 @@ for seq in seq_lens:
                 else:
                     trend = stationary
                 if interv == 'hom':
-                    intervention, treat_index = synth_maker.add_intervention(trend, type='hom')
+                    intervention, treat_index = synth_maker.add_intervention(trend, length = 24, type='hom')
                 else:
-                    intervention, treat_index = synth_maker.add_intervention(trend, type='het')
+                    intervention, treat_index = synth_maker.add_intervention(trend, length = 24, type='het')
                 if tr:
                     intervention.to_csv(data_dir + 'sim_{}_{}_{}_{}.csv'.format(seq, series, 'trend', interv),index=False)
                     trend.to_csv(data_dir + 'sim_{}_{}_{}_{}_true_counterfactual.csv'.format(seq, series, 'trend', interv),index=False)

@@ -161,7 +161,7 @@ class TSFDataLoader:
     def _read_data(self):
         """Load raw data and split datasets."""
         if self.data_type == "elec_price":
-            df = pd.read_csv(self.root_path + "data/" + self.data_type + "/" + self.data_name + "_full_table.csv")
+            df = pd.read_csv(self.root_path + "data/" + self.data_type + "/" +  self.data_name + "_full_table.csv")
         else:
             df = pd.read_csv(self.root_path + "data/" + self.data_type + "/" + self.data_name + ".csv")
 

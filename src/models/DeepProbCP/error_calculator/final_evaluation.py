@@ -98,9 +98,14 @@ def evaluate(evaluate_args, ensembled_forecasts):
     length_of_series = len(actual_results.index)
 
     data_row_A = actual_results.iloc[length_of_series-output_size:, :].T
-    data_row_A.index = data_row_A.index.astype(int)
+    data_row_A.index.name=None
     data_row_B = actual_results.iloc[:length_of_series-output_size, :].T
-    data_row_B.index = data_row_B.index.astype(int)
+    data_row_B.index.name=None
+    if dataset_type == 'sim':
+        data_row_A.index = data_row_A.index.astype(int)
+        data_row_B.index = data_row_B.index.astype(int)
+    
+    
 
     print("index:" ,data_row_A.index, type(data_row_A.index), data_row_A.index.dtype)
     

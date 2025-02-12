@@ -217,25 +217,45 @@ if __name__ == '__main__':
     else:
         stl_decomposition_identifier = "with_stl_decomposition"
 
-
-    model_identifier = dataset_name + "_" + cell_type + "cell" + "_" +  optimizer + "_" + \
+    if dataset_type == 'sim':
+        model_identifier = dataset_name + "_" + cell_type + "cell" + "_" +  optimizer + "_" + \
                        str(input_size - 1) + "_" + str(output_size) + "_" + stl_decomposition_identifier
-    print("Model Training Started for {}".format(model_identifier))
+        print("Model Training Started for {}".format(model_identifier))
     
 
-    initial_hyperparameter_values_file = "src/models/DeepProbCP/configs/initial_hyperparameter_values/" + \
+        initial_hyperparameter_values_file = "src/models/DeepProbCP/configs/initial_hyperparameter_values/" + \
         "ems_adagrad"
-    binary_train_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/" + \
+        binary_train_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/" + \
           dataset_name + "_" + str(input_size-1) + "_" + str(args.forecast_horizon) + "_" + "train" + ".tfrecords"
-    binary_validation_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
+        binary_validation_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
          dataset_name +  "_" + str(input_size-1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
-    binary_train_file_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
+        binary_train_file_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
          dataset_name + "_" + str(input_size-1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
-    binary_test_file_path_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
+        binary_test_file_path_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
          dataset_name + "_" + str(input_size-1)  + "_" + str(args.forecast_horizon) + "_" + "test" + ".tfrecords"
-    txt_test_file_path = "data/" + args.dataset_type +  "/moving_window/" + dataset_name + "_" + \
+        txt_test_file_path = "data/" + args.dataset_type +  "/moving_window/" + dataset_name + "_" + \
          str(input_size-1) + "_" + str(args.forecast_horizon) + "_" +  "test" + ".txt" 
-    actual_results_file_path = "data/" + args.dataset_type +  \
+        actual_results_file_path = "data/" + args.dataset_type +  \
+        "/" + dataset_name + "_full.txt"
+    if dataset_type == 'elec_price':
+        model_identifier = dataset_name + "_" + cell_type + "cell" + "_" +  optimizer + "_" + \
+                       str(input_size - 25) + "_" + str(output_size) + "_" + stl_decomposition_identifier
+        print("Model Training Started for {}".format(model_identifier))
+    
+
+        initial_hyperparameter_values_file = "src/models/DeepProbCP/configs/initial_hyperparameter_values/" + \
+        "ems_adagrad"
+        binary_train_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/" + \
+          dataset_name + "_" + str(input_size-25) + "_" + str(args.forecast_horizon) + "_" + "train" + ".tfrecords"
+        binary_validation_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
+         dataset_name +  "_" + str(input_size-25) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
+        binary_train_file_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
+         dataset_name + "_" + str(input_size-25) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
+        binary_test_file_path_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
+         dataset_name + "_" + str(input_size-25)  + "_" + str(args.forecast_horizon) + "_" + "test" + ".tfrecords"
+        txt_test_file_path = "data/" + args.dataset_type +  "/moving_window/" + dataset_name + "_" + \
+         str(input_size-25) + "_" + str(args.forecast_horizon) + "_" +  "test" + ".txt" 
+        actual_results_file_path = "data/" + args.dataset_type +  \
         "/" + dataset_name + "_full.txt"
     if dataset_type == 'sim':
         treated_units_index_file = "data/" + args.dataset_type + "/" + dataset_name + "_treated_indices.txt"
@@ -263,7 +283,7 @@ if __name__ == '__main__':
         'cell_type': cell_type,
         'without_stl_decomposition': without_stl_decomposition
     }
-    
+    '''
     # select the model type
     model = StackingModel(**model_kwargs)
     
@@ -354,7 +374,7 @@ if __name__ == '__main__':
         for q in quantile_range:
             ensembled_forecasts[q] = pd.read_csv(model_testing_configs.ENSEMBLE_FORECASTS_DIRECTORY_SIM +\
                                                model_identifier + "_" + str(q) +".txt",sep = ",", header=None)
-    '''
+    
 
     print("ensembled finished")
     T4 = time.time()
