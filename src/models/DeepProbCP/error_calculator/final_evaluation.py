@@ -322,7 +322,7 @@ def evaluate(evaluate_args, ensembled_forecasts):
     with open(errors_file_full_name_mean_median_control, 'a') as f:
         f.write(mean_CRPS_str_control + '\n')
     with open(errors_file_full_name_mean_median_treated, 'a') as f:
-        f.write(ean_CRPS_str_treated + '\n')
+        f.write(mean_CRPS_str_treated + '\n')
 
 
     np.savetxt(CRPS_file_cs_control + '.txt' , crps_qs_control, delimiter=",", fmt='%f')

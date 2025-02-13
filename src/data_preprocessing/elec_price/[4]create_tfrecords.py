@@ -8,14 +8,14 @@ output_path = "./data/elec_price/binary_data/"
 if not os.path.exists(output_path):
     os.makedirs(output_path)
 
-total_input_size = 36
+
 input_size = 12 
 output_size = 24
 
 
 if __name__ == '__main__':
     tfrecord_writer = tw.TFRecordWriter(
-        input_size = total_input_size + 1,
+        input_size = input_size + 1,
         output_size = output_size,
         train_file_path = 'data/elec_price/moving_window/priceMT_' + \
             str(input_size) + '_' + str(output_size) + '_train' + '.txt',

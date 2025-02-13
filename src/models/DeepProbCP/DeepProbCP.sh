@@ -9,7 +9,7 @@
 
 ###############################################################################################################################################################
 ### electricity_price 
-python ./src/models/DeepProbCP/generic_model_handler.py --dataset_type elec_price --dataset_name priceMT --contain_zero_values 0 --input_size 37 --forecast_horizon 24 --no_of_series 50 --optimizer cocob --seasonality_period 12 --address_near_zero_instability 0 --without_stl_decomposition 1 &
+python ./src/models/DeepProbCP/generic_model_handler.py --dataset_type elec_price --dataset_name priceMT --contain_zero_values 0 --input_size 13 --forecast_horizon 24 --no_of_series 50 --optimizer cocob --seasonality_period 12 --address_near_zero_instability 0 --without_stl_decomposition 1 &
 
 ### sim 
 #python ./src/models/DeepProbCP/generic_model_handler.py --dataset_type sim --dataset_name sim_90_50_stationary_hom --contain_zero_values 0 --input_size 13 --forecast_horizon 24 --no_of_series 50 --optimizer cocob --seasonality_period 30 --address_near_zero_instability 0 --without_stl_decomposition 1 &

@@ -219,22 +219,22 @@ if __name__ == '__main__':
 
     if dataset_type == 'elec_price':
         model_identifier = dataset_name + "_" + cell_type + "cell" + "_" +  optimizer + "_" + \
-                       str(input_size - 24 - 1) + "_" + str(output_size) + "_" + stl_decomposition_identifier
+                       str(input_size - 1) + "_" + str(output_size) + "_" + stl_decomposition_identifier
         print("Model Training Started for {}".format(model_identifier))
     
 
         initial_hyperparameter_values_file = "src/models/DeepProbCP/configs/initial_hyperparameter_values/" + \
         "ems_adagrad"
         binary_train_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/" + \
-          dataset_name + "_" + str(input_size-24 -1) + "_" + str(args.forecast_horizon) + "_" + "train" + ".tfrecords"
+          dataset_name + "_" + str(input_size -1) + "_" + str(args.forecast_horizon) + "_" + "train" + ".tfrecords"
         binary_validation_file_path_train_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
-         dataset_name +  "_" + str(input_size-24 - 1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
+         dataset_name +  "_" + str(input_size - 1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
         binary_train_file_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
-         dataset_name + "_" + str(input_size-24 -1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
+         dataset_name + "_" + str(input_size -1) + "_" + str(args.forecast_horizon) + "_" + "val" + ".tfrecords"
         binary_test_file_path_test_mode = "data/" + args.dataset_type + "/binary_data/"  +  \
-         dataset_name + "_" + str(input_size-24 -1)  + "_" + str(args.forecast_horizon) + "_" + "test" + ".tfrecords"
+         dataset_name + "_" + str(input_size -1)  + "_" + str(args.forecast_horizon) + "_" + "test" + ".tfrecords"
         txt_test_file_path = "data/" + args.dataset_type +  "/moving_window/" + dataset_name + "_" + \
-         str(input_size-24 -1) + "_" + str(args.forecast_horizon) + "_" +  "test" + ".txt" 
+         str(input_size -1) + "_" + str(args.forecast_horizon) + "_" +  "test" + ".txt" 
         actual_results_file_path = "data/" + args.dataset_type +  \
         "/" + dataset_name + "_full.txt"
     if dataset_type == 'sim':
