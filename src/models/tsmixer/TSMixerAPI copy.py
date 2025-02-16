@@ -361,7 +361,7 @@ class TSMixer:
     def __init__(self):
         self.args = dotdict()
         self.args.seed = 100
-        # Possible choices - ["S", "M", "MS]
+        # Possible choices - ["S", "M", "MS"]
         self.args.features = "M"
         self.args.target = "TARGET"
         self.args.checkpoints = "./checkpoints"
@@ -529,19 +529,19 @@ class TSMixer:
             df_raw.columns = np.int64(df_raw.columns.to_list())
             trues = df_raw.loc[len(df_raw)- self.args.pred_len:,:]
             trues_control = np.array(df_raw.loc[len(df_raw)- self.args.pred_len:,control])        
-            df_a_control =  df_raw.loc[:len(df_raw)- self.args.pred_len,control]  
+            df_a_control =  df_raw.loc[:len(df_raw)- self.args.pred_len -1,control]  
 
             trues_treated = np.array(df_raw.loc[len(df_raw)- self.args.pred_len:,~df_raw.columns.isin(control)])        
-            df_a_treated =  df_raw.loc[:len(df_raw)- self.args.pred_len,~df_raw.columns.isin(control)]                     
+            df_a_treated =  df_raw.loc[:len(df_raw)- self.args.pred_len-1,~df_raw.columns.isin(control)]                     
         else:
             df_raw = pd.read_csv(self.args.root_path + "data/" + self.args.data_type + "/" + self.args.data_name + \
                                  "_full_table.csv").iloc[:,1:]
             trues = df_raw.loc[len(df_raw)- self.args.pred_len:,:]
             trues_control = np.array(df_control.iloc[len(df_control) - self.args.pred_len:,control])
-            df_a_control = df_control.loc[:len(df_control)- self.args.pred_len,control]
+            df_a_control = df_control.loc[:len(df_control)- self.args.pred_len -1,control]
 
-            trues_treated = np.array(df_control.iloc[len(df_control) - self.args.pred_len:,~df_raw.columns.isin(control)])
-            df_a_treated = df_control.loc[:len(df_control)- self.args.pred_len,~df_raw.columns.isin(control)]
+            trues_treated = np.array(df_control.loc[len(df_control) - self.args.pred_len:,~df_raw.columns.isin(control)])
+            df_a_treated = df_control.loc[:len(df_control)- self.args.pred_len -1,~df_raw.columns.isin(control)]
 
         self.trues_control = trues_control
         self.trues_treated = trues_treated
