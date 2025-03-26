@@ -1,0 +1,9 @@
+tensorflow 2.5.0
+smac 1.0.0
+scipy 1.10.0
+pynisher 0.4.1
+typeguard 2.10.0
+pandas 1.4.2
+ml-dtypes 0.0.2
+numpy 1.19.5
+statsmodels 0.13.0
