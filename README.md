@@ -70,17 +70,6 @@ Set the project root directory as the working directory.
 For R scripts, make sure to set the working directory to the project root folder.
 
 
-packages:
 
-python  3.9
-tensorflow 2.5.0
-smac 1.0.0
-scipy 1.10.0
-pynisher 0.4.1
-typeguard 2.10.0
-pandas 1.4.2
-ml-dtypes 0.0.2
-numpy 1.19.5
-statsmodels 0.13.0
 
 
