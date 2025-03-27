@@ -1,4 +1,4 @@
-# Causality analysis of electricitymarket liberalization on electricit price using novel Machine Learning methods
+# Causality analysis of electricity market liberalization on electricity price using novel Machine Learning methods
 Type: Master's Thesis
 
 Author: Orr Shahar
