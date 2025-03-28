@@ -58,11 +58,8 @@ python -m venv thesis-env
 source thesis-env/bin/activate
 ```
 
-3. Install requirements
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
+3. Install requirements from requirements.txt
+
 4. Path Variables
 Set the PYTHONPATH env variable of the system. Append absolute paths of both the project root directory and the directory of the src/models/DeepProbCP/cocob_optimizer into the PYTHONPATH for the model DeepProbCP
 Set the project root directory as the working directory.
