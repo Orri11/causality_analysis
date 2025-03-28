@@ -71,4 +71,58 @@ For R scripts, make sure to set the working directory to the project root folder
 
 ### Data
 
+#### Synthetic Dataset
 
+The synthetic dataset is constructed using the code /src/data_preprocessing/sim/sim_data_generator.py. This is the base code for the creation of a stationary dataset, as well as an additional trend and intervention. 
+For the synthetic dataset, we create multiple scenarios combining long & short lengths with many & few time series. Each combination is created as stationary as well as with a trend. The scenarios are created in the code available in /src/data_preprocessing/sim/[1]prepare_sim_data.py.
+
+For DeepProbCP, the data goes through further pre-processing steps. These steps include organizing the data for the moving window and conversion to .tfrecords. All modules for these pre-processing steps are in /src/data_preprocessing/sim/
+
+#### Real World Data
+
+The raw electricity price dataset is located at /data/elec_price/elec_prices.xlsx. The additional datasets for EDA dereg_year.xlsx and gen_prod_type.xls, as well as the external covariates raw datasets are located in the same folder.
+The code for the pre-processing and EDA of the real-world dataset is located at src/data_preprocessing/elec_price/.
+For DeepProbCP, the data goes through the same pre-processing steps as in the synthetic dataset. For the rest of the models, the data is set for the right format through [5]benchmarks.py.
+Additionally, the external covariates are pre-processed in external_covariates.ipynb.
+
+### Training code
+
+1. ASCM -  Run the codes in src/models/ascm/ascm_sim.R for synthetic dataset and src/models/ascm/ascm_elec_price.R for electricity price
+2. CausalArima -  Run the codes in src/models/ascm/CausalArima_sim.R.R for synthetic dataset and src/models/ascm/CausalArima_elec_price.R for electricity price
+3. TSMixer Run the codes in src/models/TSMixer/tsmixer.ipynb
+4. DeepProbCP Run the codes in src/models/DeepProbCP/DeepProbCP.sh
+
+### Evaluation code
+
+1. Metrics - The sMAPE and MASE are calculated and saved in each model's code. These metrics can be found at /results/../../metrics/
+2. The final evaluation and ATE estimation of the synthetic dataset can be found at /results/sim_results_evaluation.ipynb
+3. The final evaluation and ATE estimation of the real-world dataset, along with the placebo test results can be found at /results/elec_price_results_evaluation.ipynb.ipynb
+
+## Results
+
+The figures can be found at /figs. 
+All figures and tables related to the models' performance and ATE are created in the scripts /results/sim_results_evaluation.ipynb and /results/elec_price_results_evaluation.ipynb.ipynb
+
+## Project structure
+
+```bash
+├── README.md
+├── requirements.txt                                -- required libraries
+├── data                                            -- stores csv file 
+├── figs                                            -- stores image files
+├── results
+    ├── elec_price_results_evaluation.ipynb         -- elec_price final evaluation     
+    ├── sim_results_evaluation.ipynb                -- sim final evaluation
+    ├── elec_price                                  -- Models' forecasts and metrics
+    ├── sim                                         -- Models' forecasts and metrics
+└── src
+    ├── data_preprocessing                          
+        ├── elec_price                              -- preprocesses data
+        ├── sim                                     -- preprocesses data
+    ├── models
+         ├── DeepProbCP
+         ├── TSMixer
+         ├── ASCM
+         ├── CausalArima               
+        
+```
