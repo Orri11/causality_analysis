@@ -507,20 +507,23 @@ class TSMixer:
             treated_units_indices = np.loadtxt(treated_units_indices_path, dtype=int)
         # Generate predictions
         prediction = self.model.predict(self.test_data, batch_size=self.args.batch_size)
-        preds_adjusted = np.repeat(prediction[0], 3, axis=1)
-        preds = self.data_loader.inverse_transform(preds_adjusted)
-        preds = preds[:,0]
-        self.preds = preds
-        
+        if self.args.data_type =='elec_price':
+            preds_adjusted = np.repeat(prediction[0], 3, axis=1)
+            preds = self.data_loader.inverse_transform(preds_adjusted)
+            preds = preds[:,0]
+            self.preds = preds
+        else:
+            preds = self.data_loader.inverse_transform(prediction[0])
+            self.preds = preds
 
-
-
-        
-        # Extract y_trues from DataLoader
-        #trues_list = []
-        #for _, targets in self.test_data:
-            #trues_list.append(targets.numpy())
-        #self.trues = np.concatenate(trues_list, axis=0)
+        if self.args.data_type == 'sim':
+            names = np.int64(pd.read_csv(self.args.root_path + "data/" + self.args.data_type + "/" + self.args.data_name + \
+                                '.csv').columns.tolist())
+            preds_df = pd.DataFrame(preds)
+            preds_df.columns = names
+            control = np.setdiff1d(np.arange(0,preds_df.shape[1]), treated_units_indices)
+            preds_for_errors_control = np.array(preds_df.loc[:,control])
+            preds_for_errors_treated = np.array(preds_df.loc[:,~preds_df.columns.isin(control)])       
 
         
         if self.args.data_type == "sim":
