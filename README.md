@@ -101,7 +101,7 @@ Additionally, the external covariates are pre-processed in external_covariates.i
 ## Results
 
 The figures can be found at /figs. 
-All figures and tables related to the models' performance and ATE are created in the scripts /results/sim_results_evaluation.ipynb and /results/elec_price_results_evaluation.ipynb.ipynb
+All figures and tables related to the models' performance and ATE are created in the scripts /results/sim_results_evaluation.ipynb and /results/elec_price_results_evaluation.ipynb
 
 ## Project structure
 
