@@ -32,9 +32,9 @@ ATT estimation:
     - [Dependencies](#Dependencies)
     - [Setup](#Setup)
 - [Reproducing results](#Reproducing-results)
-    - [Training code](#Data)
-    - [Evaluation code](#Training-code)
-    - [Pretrained models](#Evaluation-code)
+    - [Data](#Data)
+    - [Training code](#Training-code)
+    - [Evaluation code](#Evaluation-code)
 - [Results](#Results)
 - [Project structure](#Project-structure)
 
